@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تأكيد السحب</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      color: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100%;
+    }
+
+    .confirmation-box {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  color: black;
+  padding: 20px;
+  width: 90%;
+  max-width: 90%;
+  height: 95%;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  direction: rtl;        /* ضروري لعرض النصوص من اليمين */
+  text-align: right;     /* محاذاة النص لليمين */
+  overflow-y: auto;
+}
+
+/* تأكد أن كل النصوص والفقرات ترث نفس الاتجاه */
+.confirmation-box * {
+  direction: rtl;
+  text-align: right;
+}
+
+    .confirmation-box h2 {
+      margin-bottom: 15px;
+    }
+
+    .info {
+      text-align: right;
+      margin-top: 20px;
+      font-size: 24px;
+      color: #000;
+    }
+
+    .info p {
+      margin: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 5px;
+    }
+
+    .status {
+      font-weight: bold;
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="confirmation-box">
+    <h2 style="text-align: center;font-size:60px;"> تم إرسال طلب السحب</h2>
+<p style="text-align: center;font-size:30px;">سيتم تحويل المبلغ بعد مراجعة الطلب من خادم  SwapIO</p>
+
+
+<div style="margin-top: 5%;font-size:16px;">
+    
+    
+  
+   
+  <!-- ✅ الحالة العامة -->
+  <p style="font-size: 22px; font-weight: bold; margin: 0;">
+  <span style="color: black;">الحالة:</span>
+  <span style="color: #ffc107;">قيد المراجعة</span>
+  <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
+</p>
+  <p><strong>المبلغ:</strong> <span id="amountText"></span> USD</p>
+   <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
+  <p><strong>طريقة السحب:</strong> <span id="methodText"></span></p>
+   <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
+  <p><strong>المعرف :</strong> <span id="accountText"></span></p>
+   <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
+  <p><strong>السحب إلى :</strong> <span id="withdrawEmail"></span></p>
+  <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
+  
+      <!--كود البنك-->
+    <div id="bankDetails" style="margin-top: 30px;"></div>
+
+  
+  <!-- ✅ رقم تعريفي للعملية -->
+  <p style="margin-top: 0px; font-size: 16px;"><strong>رمز العملية:</strong> <span id="transactionId"></span></p>
+   <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
+
+  <!-- ✅ تاريخ ووقت الطلب -->
+  <p style="font-size: 16px;"><strong>تاريخ الطلب:</strong> <span id="requestDate"></span></p>
+  <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
+   
+  </div>
+  <p style="text-align: center;margin-top:10%;font-size:24px;font-weight:700;">تمت جدولة عملية السحب قد تستغرق العملية حوالى 1إلى2 ساعة وسيتم إرسال إشعار إليك عند الإنتهاء </p>
+  
+
+
+<div id="bankDetails" style="margin-top: 20px;margin-top:60%;"></div>
+
+<div style="display: flex; justify-content: center; align-items: center;">
+  <a href="#" onclick="history.back(); return false;"
+     style="display: inline-block;font-size:28px; line-height: 3vh; width: 11vh; height: 3vh; padding: 12px 28px; background-color: #000; color: white; font-size: 16px; font-weight: bold; border-radius: 15px; text-decoration: none; text-align: center; transition: opacity 0.3s ease;">
+    العودة
+  </a>
+</div>
+
+<footer style="
+  text-align: center;
+  font-size: 20px;
+  color: #888;
+  padding: 10px 0;
+  position: fixed;
+  bottom: 1.5%;
+  width: 96%;
+  background-color: transparent;">
+  جميع الحقوق محفوظة © 2025
+</footer>
+
+  </div>
+  
+  
+  
+          <!-- javascript -->
+<script>
+    
+          //كود جلب القيم المحفوضة للسحب
+  window.onload = function () {
+  const amount        = localStorage.getItem("withdrawAmount");
+  const account       = localStorage.getItem("withdrawAccount");
+  const method        = localStorage.getItem("withdrawMethod");
+  const email         = localStorage.getItem("withdrawEmail");      // ← استخراج البريد
+  const bankNameHolder= localStorage.getItem("bankNameHolder");
+  const bankIBAN      = localStorage.getItem("bankIBAN");
+  const bankName      = localStorage.getItem("bankName");
+  const bankSwift     = localStorage.getItem("bankSwift");
+  const now     =localStorage.getItem("requestDate");
+  const transactionId     =localStorage.getItem("transactionId");
+  // عرض القيم في العناصر
+  document.getElementById("amountText").textContent = amount || "غير مستخدم في التحويل البنكي";
+  document.getElementById("accountText").textContent = account || "لاتوجد بيانات";
+  document.getElementById("methodText").textContent = method || "لاتوجد بيانات";
+  document.getElementById("withdrawEmail").textContent = email ||  "لاتوجد بيانات"
+  document.getElementById("requestDate").textContent = now || "لاتوجد بيانات";
+document.getElementById("transactionId").textContent = transactionId || "لاتوجد بيانات";
+
+  // إذا كانت طريقة الدفع تحويل بنكي، أضف تفاصيل البنك
+  if (method && method.toLowerCase().includes("bank transfers")) {
+    document.getElementById("bankDetails").innerHTML = `
+      <p><strong>اسم صاحب الحساب:</strong> ${bankNameHolder}</p>
+      <p><strong>IBAN:</strong> ${bankIBAN}</p>
+      <p><strong>اسم البنك:</strong> ${bankName}</p>
+      <p><strong>SWIFT:</strong> ${bankSwift}</p>
+    `;
+  }
+};
+  
+</script>
+
+
+
+
+</body>
+</html>

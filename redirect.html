@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ad Viewer</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+    #adFrame {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+    }
+    #skipBtn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #8e2de2;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+    <style>
+  #openNow {
+    position: fixed;   /* يثبت الزر أسفل الشاشة */
+    bottom: 20%;       /* مسافة من الأسفل 20% */
+    left: 50%;         /* منتصف الشاشة أفقيًا */
+    transform: translateX(-50%); /* لضبطه تمامًا في المنتصف */
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, purple, lightpink);
+    color: white;
+    cursor: pointer;
+  }
+</style>
+
+<button id="openNow">فتح الآن</button>
+<p id="statusMsg"></p>
+<script>
+const companies = {
+  adstera:    ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  popads:     ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  hilltop:    ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  propeller:  ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  mediahub:   ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  yllix:      ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  bidvertiser:["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  clickadu:   ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  adcash:     ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  admaven:    ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"]
+};
+
+let lastFive = [];
+let batchCount = 0;
+let banEvery = randomInt(1,4);
+const adHistory = [];
+let countdownActive = false;
+
+function getRandomCompany() {
+  let keys = Object.keys(companies).filter(c => !lastFive.includes(c));
+  if (keys.length === 0) lastFive = [], keys = Object.keys(companies);
+  const pick = keys[randomInt(0, keys.length-1)];
+  lastFive.push(pick);
+  if (lastFive.length>5) lastFive.shift();
+  return pick;
+}
+
+function randomMs(minSec, maxSec) {
+  return randomInt(minSec, maxSec) * 1000;
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function getRestPeriod() {
+  return randomInt(5,18) * 60 * 1000;
+}
+
+function getBanPeriod() {
+  const min = Math.floor(2.15*60), max = Math.floor(4.5*60);
+  return randomInt(min, max) * 60 * 1000;
+}
+
+function canShowAd(company) {
+  const now = Date.now();
+  const recent = adHistory.filter(e => now - e.time < 10*60*1000);
+  if (recent.some(e => e.company === company)) return false;
+  return true;
+}
+
+function registerAd(company) {
+  adHistory.push({company, time: Date.now()});
+  if (adHistory.length > 100) adHistory.shift();
+}
+
+async function runBatch() {
+  const hour = new Date().getHours();
+  const size = (hour>=1 && hour<6) ? 3 : randomInt(4,7);
+
+  for (let i=0; i<size; i++) {
+    let comp = getRandomCompany();
+    if (!canShowAd(comp)) { i--; continue; }
+    const urlList = companies[comp];
+    const url = urlList[randomInt(0, urlList.length-1)];
+    registerAd(comp);
+    window.open(url, "_blank", "noopener,noreferrer");
+await addReward();
+await addWatchedAd();
+await addDailyReward();
+await new Promise(r => setTimeout(r, randomMs(7,12)));
+  }
+
+  batchCount++;
+
+  let waitTime;
+  if (hour>=1 && hour<6) {
+    waitTime = 50*60*1000;
+  } else if (batchCount >= banEvery) {
+    waitTime = getBanPeriod();
+    batchCount = 0;
+    banEvery = randomInt(1,4);
+  } else {
+    waitTime = getRestPeriod();
+  }
+
+  return waitTime; // نرجع مدة الانتظار
+}
+
+
+// ========================
+// ربط مع الزر و الرسالة
+// ========================
+const openBtn = document.getElementById('openNow');
+const statusMsg = document.getElementById('statusMsg');
+
+openBtn.addEventListener('click', async () => {
+  openBtn.disabled = true;
+  const waitTime = await runBatch(); // نحصل على المدة
+  startCountdown(waitTime);          // نبدأ عداد
+});
+
+// لما يخرج المستخدم من التبويب
+window.addEventListener('blur', () => {
+  openBtn.disabled = true;
+});
+
+// عند الرجوع للصفحة نعيد تفعيل الزر فقط إذا لا يوجد عداد شغال
+window.addEventListener('focus', () => {
+  if (!countdownActive) {
+    openBtn.disabled = false;
+    statusMsg.textContent = "";
+  }
+});
+
+// ========================
+// دالة العد التنازلي مع حفظ الحظر
+// ========================
+function formatTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h} ساعة ${m} دقيقة`;
+  if (m > 0) return `${m} دقيقة ${s} ثانية`;
+  return `${s} ثانية`;
+}
+
+function startCountdown(ms) {
+  const endTime = Date.now() + ms;
+  localStorage.setItem("banEnd", endTime); // حفظ وقت انتهاء الحظر
+
+  // نخلي النص في منتصف الشاشة
+  statusMsg.style.position = "fixed";
+  statusMsg.style.top = "50%";
+  statusMsg.style.left = "50%";
+  statusMsg.style.transform = "translate(-50%, -50%)";
+  statusMsg.style.fontSize = "20px";
+  statusMsg.style.textAlign = "center";
+
+  // يبدأ العداد
+  let remaining = Math.floor(ms/1000);
+  countdownActive = true;
+  statusMsg.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;
+  const timer = setInterval(() => {
+    remaining = Math.floor((endTime - Date.now())/1000);
+    if (remaining <= 0) {
+      clearInterval(timer);
+      countdownActive = false;
+      localStorage.removeItem("banEnd"); // حذف الحظر
+      statusMsg.textContent = "";
+      openBtn.disabled = false;
+    } else {
+      statusMsg.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;
+    }
+  }, 1000);
+}
+
+// عند تحميل الصفحة نتحقق إن كان هناك حظر سابق
+window.addEventListener("load", () => {
+  const banEnd = localStorage.getItem("banEnd");
+  if (banEnd) {
+    const remaining = banEnd - Date.now();
+    if (remaining > 0) {
+      openBtn.disabled = true;
+      startCountdown(remaining);
+    } else {
+      localStorage.removeItem("banEnd");
+    }
+  }
+});
+</script>
+
+<script>
+        //تخزين رصيد.المستخدم
+async function addReward() {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    console.error("لا يوجد مستخدم مسجل دخول!");
+    return;
+  }
+
+  const uid = user.uid;
+  const userRef = firebase.database().ref("users/" + uid + "/balance");
+
+  try {
+    const snapshot = await userRef.get();
+    let balance = snapshot.exists() ? snapshot.val() : 0;
+
+    balance = parseFloat(balance) + 0.1; // نزيد 0.1
+
+    await userRef.set(balance); // نحفظه من جديد
+    console.log("تم تحديث الرصيد:", balance);
+  } catch (error) {
+    console.error("خطأ أثناء تحديث الرصيد:", error);
+  }
+}
+</script>
+
+<script>
+  // زيادة عدد الإعلانات التي شاهدها المستخدم
+  async function addWatchedAd() {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      console.error("لا يوجد مستخدم مسجل دخول!");
+      return;
+    }
+
+    const uid = user.uid;
+    const userRef = firebase.database().ref("users/" + uid + "/daywacted");
+
+    try {
+      const snapshot = await userRef.get();
+      let count = snapshot.exists() ? snapshot.val() : 0;
+
+      count = parseInt(count) + 1; // نزيد 1
+
+      await userRef.set(count); // نحفظه من جديد
+      console.log("تم تحديث عدد الإعلانات:", count);
+    } catch (error) {
+      console.error("خطأ أثناء تحديث عدد الإعلانات:", error);
+    }
+  }
+</script>
+
+<script>
+  // زيادة أرباح اليوم من LocalStorage
+  function addDailyReward() {
+    const now = Date.now();
+
+    // نجلب البيانات من localStorage
+    let earningsData = JSON.parse(localStorage.getItem("earningsTodayData"));
+
+    if (!earningsData) {
+      // لا يوجد بيانات → نبدأ من جديد
+      earningsData = { amount: 0, startTime: now };
+    } else {
+      // تحقق هل مرّ 24 ساعة
+      const elapsed = now - earningsData.startTime;
+      if (elapsed > 24 * 60 * 60 * 1000) { 
+        // مر أكثر من يوم → إعادة تصفير
+        earningsData = { amount: 0, startTime: now };
+      }
+    }
+
+    // نزيد 0.1
+    earningsData.amount = parseFloat(earningsData.amount) + 0.1;
+
+    // نخزن من جديد
+    localStorage.setItem("earningsTodayData", JSON.stringify(earningsData));
+
+    console.log("أرباح اليوم الآن:", earningsData.amount.toFixed(2));
+    return earningsData.amount;
+  }
+</script>
+
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
+<script>
+    // إعداد Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBhOhK3yCv4p-dhfXYx-w1aRB19a-VpRKY",
+        authDomain: "swapio-30675.firebaseapp.com",
+        projectId: "swapio-30675",
+        storageBucket: "swapio-30675.appspot.com",
+        messagingSenderId: "936588847751",
+        appId: "1:936588847751:web:81aa27a8a12fc6d6a06622",
+        measurementId: "G-L4RH076S6H",
+        databaseURL: "https://swapio-30675-default-rtdb.firebaseio.com"
+    };
+
+    // تفعيل Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // التأكد من أن المستخدم مسجل الدخول
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            const userEmail = user.email;
+            const firstLetter = userEmail.charAt(0).toUpperCase();
+            console.log("Email:", userEmail);
+            console.log("First letter:", firstLetter);
+        } else {
+            // 🚀 إعادة توجيه المستخدم إلى index.html لو غير مسجل دخول
+            window.location.href = "index.html";
+        }
+    });
+</script>
+
+<script>
+// 🧠 عشوائية للبصمة والتشويش الطبيعي
+
+// ✅ Zoom عشوائي بين 95% و104%
+document.body.style.zoom = (0.95 + Math.random() * 0.09).toFixed(2);
+
+// ✅ حجم الخط يتغير بشكل طفيف
+document.body.style.fontSize = `${Math.floor(14 + Math.random() * 3)}px`;
+
+// ✅ لغة المتصفح تتغير بشكل خفيف
+const langs = ['en-US', 'en-GB', 'fr-FR', 'ar-DZ'];
+try {
+  Object.defineProperty(navigator, 'language', {
+    get: () => langs[Math.floor(Math.random() * langs.length)]
+  });
+} catch (e) {
+  console.warn("لم يتم تعديل اللغة: " + e.message);
+}
+
+// ✅ Canvas fingerprint تشويش بسيط
+try {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.textBaseline = "top";
+  ctx.font = "14px Arial";
+  ctx.fillStyle = "#f00";
+  ctx.fillText("Test" + Math.random().toFixed(5), 10, 10);
+} catch (e) {
+  console.warn("Canvas spoofing failed: " + e.message);
+}
+
+// ✅ أبعاد الشاشة (Screen Size) تشويش بسيط
+try {
+  const randomOffset = () => Math.floor(Math.random() * 3) - 1; // -1 أو 0 أو +1
+  Object.defineProperty(screen, 'width', {
+    get: () => window.innerWidth + randomOffset()
+  });
+  Object.defineProperty(screen, 'height', {
+    get: () => window.innerHeight + randomOffset()
+  });
+} catch (e) {
+  console.warn("لم يتم تعديل أبعاد الشاشة: " + e.message);
+}
+
+// ✅ WebGL Fingerprint noise
+try {
+  const getParameter = WebGLRenderingContext.prototype.getParameter;
+  WebGLRenderingContext.prototype.getParameter = function(parameter) {
+    if (parameter === 37445 || parameter === 37446) {
+      // vendor / renderer
+      return "FakeWebGL-" + Math.random().toString(36).substring(2, 8);
+    }
+    return getParameter.apply(this, arguments);
+  };
+} catch (e) {
+  console.warn("WebGL spoofing failed: " + e.message);
+}
+
+// ✅ AudioContext Fingerprint noise
+try {
+  const origGetChannelData = AudioBuffer.prototype.getChannelData;
+  AudioBuffer.prototype.getChannelData = function() {
+    const results = origGetChannelData.apply(this, arguments);
+    for (let i = 0; i < results.length; i += 100) {
+      results[i] = results[i] + (Math.random() * 0.0001 - 0.00005);
+    }
+    return results;
+  };
+} catch (e) {
+  console.warn("Audio spoofing failed: " + e.message);
+}
+
+// ✅ تأخير بسيط في بدء التنفيذ (300-800ms)
+const fingerprintDelay = Math.floor(Math.random() * 500) + 300;
+setTimeout(() => {
+  console.log("✅ Fingerprint noise applied.");
+  // يمكنك هنا تشغيل أي شيء إضافي بعد التأخير
+}, fingerprintDelay);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تسجيل الدخول / إنشاء حساب</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(to bottom,white 50%,#C38BFA ,#8e2de2 ,#4a00e0 );
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+.box {
+  width: 85%;
+  height: 85%;
+  background: rgba(255, 255, 255, 0.1);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+    h2 {
+  background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text; /* للمتصفحات الحديثة */
+  text-fill-color: transparent;
+  font-weight: bold;
+      margin-bottom: 9%;
+      margin-top: 3%;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 5%;
+      border: 2px solid #000;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    input:focus, select:focus {
+      border-color: #8e2de2;
+      background-color: #f3e9fc;
+      outline: none;
+    }
+
+    .password-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.password-container input {
+  flex: 1;
+  margin-bottom: 5%;
+}
+
+
+
+
+.toggle-password {
+  position: absolute;
+  left: 10px; /* المسافة من يسار الحقل */
+  top: 50%;
+  transform: translateY(-50%); /* تجعلها في وسط الحقل عموديًا */
+  cursor: pointer;
+  color: #555;
+  font-size: 18px;
+}
+
+
+    Button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #8e2de2, #4a00e0);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-bottom: 5%;
+    }
+
+    Button:hover {
+      background: linear-gradient(to right, #8e2de2, #4a00e0);
+    }
+    Button:active {background: linear-gradient(to right, #8e2de2, #4a00e0);
+    }
+
+    .forgot-link, .policy, p {
+      font-size: 14px;
+      color: #000;
+      margin-top: 0px;
+      text-align: right;
+      direction: ltr;
+      margin-bottom: 5%;
+    }
+
+    .forgot-link a, p a {
+      color: #1e90ff;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .box {
+        padding: 20px;
+      }
+      .global-policy {
+  position: fixed;
+  bottom: 15px;
+  width: 100%;
+  text-align: right;
+  font-size: 14px;
+  color: #000;
+}
+
+.global-policy a {
+  text-decoration: underline;
+  color: #1e90ff;
+}
+.hidden {
+  display: none;
+}
+#sendCodeBtn {
+  margin-top: 10px;
+  margin-bottom: 5%;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(90deg, #8e2de2, #4a00e0);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#sendCodeBtn:hover {
+  background: linear-gradient(90deg, #8e2de2, #4a00e0);
+}
+#sendCodeBtn:active {
+  background: linear-gradient(90deg, #8e2de2, #4a00e0);
+}
+  .google-btn {
+    background-color: #000 !important
+    color: #fff !important
+    width: 100%;
+    border: 1px solid #000 !important
+    padding: 10px 20px;
+    border-radius: 50px; /* زاوية الدوران */
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 5%;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .google-btn img {
+    margin-left: 5%;
+  }
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-database-compat.js"></script>
+  <script>
+    // إعداد Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBhOhK3yCv4p-dhfXYx-w1aRB19a-VpRKY",
+      authDomain: "swapio-30675.firebaseapp.com",
+      projectId: "swapio-30675",
+      storageBucket: "swapio-30675.appspot.com",
+      messagingSenderId: "936588847751",
+      appId: "1:936588847751:web:81aa27a8a12fc6d6a06622",
+      measurementId: "G-L4RH076S6H"
+    };
+    
+   
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+</script>
+<script>
+    async function handleRegister() {
+      const name = document.getElementById("registerName").value;
+      const email = document.getElementById("registerEmail").value;
+      const password = document.getElementById("registerPassword").value;
+      const country = document.getElementById("countrySelect").value;
+
+      if (!name || !email || !password || country === "اختر الدولة") {
+        alert("يرجى ملء جميع الحقول.");
+        return;
+      }
+
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+const uid = userCredential.user.uid;
+
+await firebase.database().ref("users/" + uid).set({
+  name: name,
+  email: email,
+  country: country,
+  balance: 0,
+  daybalance: 0,
+  Adswatch: 0,
+  withdraw: 0,
+  referredUsers: 0,
+});
+    
+      
+alert("تم إنشاء الحساب بنجاح!");
+        window.location.href = "home.html";
+       } catch (error) {
+        alert("خطأ: " + error.message);
+      }
+    }
+   </script>
+   <script>
+  async function handleLogin() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+
+    if (!email || !password) {
+      alert("يرجى إدخال البريد الإلكتروني وكلمة المرور.");
+      return;
+    }
+
+    try {
+      await auth.signInWithEmailAndPassword(email, password);
+      alert("تم تسجيل الدخول بنجاح!");
+      window.location.href = "home.html";
+    } catch (error) {
+      alert("فشل تسجيل الدخول: " + error.message);
+    }
+  }
+</script>
+    <script>
+  function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    firebase.auth().signInWithPopup(provider)
+      .then((result) => {
+        // تسجيل الدخول ناجح
+        console.log("تم تسجيل الدخول:", result.user);
+        // انتقال للصفحة الرئيسية
+        window.location.href = "home.html";
+      })
+      .catch((error) => {
+        console.error("خطأ في تسجيل الدخول:", error);
+        alert("حدث خطأ: " + error.message);
+      });
+  }
+</script>
+<script>
+        //عرض واخفاء كلمة المرور
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
+  const isPassword = input.type === "password";
+  input.type = isPassword ? "text" : "password";
+  icon.classList.toggle("fa-eye");
+  icon.classList.toggle("fa-eye-slash");
+}
+</script>
+<script>
+        
+
+  // بعد إنشاء المستخدم بنجاح
+firebase.auth().createUserWithEmailAndPassword(email, password)
+  .then((userCredential) => {
+    const user = userCredential.user;
+    const uid = user.uid;
+
+    // توليد كود إحالة عشوائي
+    const referralCode = generateReferralCode();
+
+    // حفظ الكود في قاعدة البيانات
+    firebase.database().ref('users/' + uid).set({
+
+      referralCode: referralCode,
+      referredBy: null // سيتم ملؤه لاحقاً إذا جاء من رابط إحالة
+    });
+  })
+  .catch((error) => {
+    console.error(error.message);
+  });
+
+// دالة توليد كود إحالة
+function generateReferralCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let code = "";
+  for (let i = 0; i < 10; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+      //استخراج كود الإحالة من الرابط
+      function getReferralCodeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref');
+}
+
+</script>
+<script>
+
+
+    
+    window.onload = function () {
+  const countries = [
+    // Arab countries
+    "Algeria", "Egypt", "Saudi Arabia", "United Arab Emirates", "Tunisia", "Morocco", "Iraq",
+    "Syria", "Jordan", "Palestine", "Lebanon", "Libya", "Sudan", "Mauritania", "Qatar",
+    "Bahrain", "Kuwait", "Oman", "Yemen", "Djibouti", "Comoros", "Somalia",
+
+    // Famous countries
+    "United States", "Canada", "France", "Germany", "Spain", "Italy", "United Kingdom",
+    "Sweden", "Norway", "Netherlands", "Switzerland", "Japan", "South Korea", "China",
+    "India", "Turkey", "Australia", "Brazil", "Russia", "Argentina",
+
+    // Other
+    "Other country"
+  ];
+
+  const select = document.getElementById("countrySelect");
+  countries.forEach(c => {
+    const option = document.createElement("option");
+    option.textContent = c;
+    option.value = c;
+    select.appendChild(option);
+  });
+};
+    </script>
+    <script>
+let inResetMode = false;
+
+function showResetBox() {
+  inResetMode = !inResetMode;
+
+  const title = document.getElementById("loginTitle");
+  const passwordContainer = document.querySelector(".password-container");
+  const loginButton = document.getElementById("loginButton");
+  const sendCodeBtn = document.getElementById("sendCodeBtn");
+  const forgotLink = document.querySelector(".forgot-link a");
+
+  if (inResetMode) {
+    // وضع استعادة كلمة المرور
+    title.textContent = "ارسال رابط اعادة تعيين كلمة المرور";
+    passwordContainer.style.display = "none";     // إخفاء حقل كلمة المرور
+    loginButton.style.display = "none";           // إخفاء زر تسجيل الدخول
+    sendCodeBtn.style.display = "block";          // إظهار زر إرسال الرابط
+    forgotLink.textContent = "رجوع";
+  } else {
+    // العودة إلى وضع تسجيل الدخول
+    title.textContent = "تسجيل الدخول";
+    passwordContainer.style.display = "flex";     // إظهار حقل كلمة المرور
+    loginButton.style.display = "block";          // إظهار زر تسجيل الدخول
+    sendCodeBtn.style.display = "none";           // إخفاء زر إرسال الرابط
+    forgotLink.textContent = "نسيت كلمة المرور؟";
+  }
+  }
+  </script>
+  <script>
+
+function sendResetLink() {
+  const email = document.getElementById("loginEmail").value;
+
+  if (!email) {
+    alert("يرجى إدخال البريد الإلكتروني أولاً.");
+    return;
+  }
+
+  firebase.auth().sendPasswordResetEmail(email)
+    .then(() => {
+      alert(
+  "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني: " + email +
+  "\n\nإذا لم تجد الرسالة في صندوق الوارد، يرجى التحقق من مجلد الرسائل غير المرغوب فيها (Spam)"
+);
+    })
+    .catch((error) => {
+      alert("خطأ: " + error.message);
+    });
+}
+</script> 
+
+<script>
+function showRegister() {
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("registerBox").classList.remove("hidden");
+    }
+
+    function showLogin() {
+      document.getElementById("registerBox").classList.add("hidden");
+      document.getElementById("loginBox").classList.remove("hidden");
+    }
+</script>
+ <script>
+       //تسجيل الشخص المحيل
+    const referralCode = getReferralCodeFromURL();
+
+if (referralCode) {
+  // نفّذ الكود هنا فقط إذا كان هناك كود إحالة
+  
+    // الكود المُستخرج من الرابط  
+const newUserName = document.getElementById('registerName').value; // جلب الاسم من حقل الإدخال
+
+   const snapshot = await firebase.database().ref('users')
+  .orderByChild('referralCode')
+  .equalTo(referralCode)
+  .once('value');
+
+if (snapshot.exists()) {
+  snapshot.forEach(childSnapshot => {
+    const referrerUID = childSnapshot.key;
+
+        // أضف اسم المستخدم الجديد في قائمة المُحالين  
+        firebase.database().ref(`users/${referrerUID}/referredUsers`).push({  
+          name: newUserName,  
+          timestamp: Date.now()
+        });  
+      });  
+    }  
+  });
+  </script>
+
+    
+</head>
+<body>
+
+  <!-- تسجيل الدخول -->
+  <div class="box" id="loginBox">
+    <h2 id="loginTitle">تسجيل الدخول</h2>
+    <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" />
+    <div class="password-container">
+  <input type="password" id="loginPassword" placeholder="كلمة المرور" />
+  <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword', this)"></i>
+</div>
+
+<div class="forgot-link"><a onclick="showResetBox()">نسيت كلمة المرور؟</a></div> 
+       <!-- زر جديد لإرسال الرمز -->
+  <button class="loginButton" id="sendCodeBtn" onclick="sendResetLink()" style="display: none;">إرسال الرابط</button>
+    <button id="loginButton"onclick="handleLogin()">تسجيل الدخول</button>
+    
+    <div style="display: flex; align-items: center; text-align: center; margin: 0; margin-bottom: 5%;">
+  <hr style="flex: 1; border: none; height: 1px; background-color: #000; margin: 0;" />
+  <span style="padding: 0 10px; color: #666; font-size: 14px;">أو</span>
+  <hr style="flex: 1; border: none; height: 1px; background-color: #000; margin: 0;" />
+</div>
+       <button class="google-btn" style="background-color:#000;"onclick="loginWithGoogle()">
+  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+       style="width:20px; vertical-align:middle; margin-left:8px;">
+  تسجيل الدخول باستخدام Google
+</button>
+
+<p>ليس لديك حساب؟ <a onclick="showRegister()">أنشئ حسابًا</a></p>
+    <div class="policy global-policy">
+  بالمُتابعة، فإنك توافق على <a href="#">سياسة الخصوصية</a> و<a href="#">شروط الاستخدام</a>.
+</div>
+  </div>
+
+  <!-- إنشاء حساب -->
+  <div class="box hidden" id="registerBox">
+    <h2>إنشاء حساب</h2>
+    <input type="text" id="registerName" placeholder="الاسم الكامل" />
+    <select id="countrySelect">
+      <option disabled selected>اختر الدولة</option>
+    </select>
+    <input type="email" id="registerEmail" placeholder="البريد الإلكتروني" />
+  <div class="password-container">
+  <input type="password" id="registerPassword" placeholder="كلمة المرور" />
+  <i class="fas fa-eye toggle-password" onclick="togglePassword('registerPassword', this)"></i>
+</div>
+
+    <button class="loginButton" onclick="handleRegister()">إنشاء الحساب</button>
+    <div style="display: flex; align-items: center; text-align: center; margin: 0; margin-bottom: 5%;">
+  <hr style="flex: 1; border: none; height: 1px; background-color: #000; margin: 0;" />
+  <span style="padding: 0 10px; color: #666; font-size: 14px;">أو</span>
+  <hr style="flex: 1; border: none; height: 1px; background-color: #000; margin: 0;" />
+</div>
+      <button class="google-btn" onclick="loginWithGoogle()">
+  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+       style="width:20px; vertical-align:middle; margin-left:8px;">
+  تسجيل الدخول باستخدام Google
+</button>
+    <p>لديك حساب؟ <a onclick="showLogin()">سجّل الدخول</a></p>
+    <div class="policy global-policy">
+  بالمُتابعة، فإنك توافق على <a href="#">سياسة الخصوصية</a> و<a href="#">شروط الاستخدام</a>.
+</div>
+</body>
+</html>

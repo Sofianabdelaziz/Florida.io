@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>Collapsible Sidebar with Icons</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom,white 5%,#C38BFA ,#8e2de2 ,#4a00e0 ,#8e2de2 );
+            display: flex;
+        }
+
+        /* الشريط الجانبي */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 30%;
+            height: 91vh;
+            margin-top: 15%;
+            position: fixed;
+            bottom: 0;
+            border-radius: 0 20px 20px 0;
+            background-color: rgba(255, 255, 255, 0.6);
+            transition: width 0.3s ease;
+            overflow: hidden;
+            z-index: 1000;
+
+        }
+
+        .sidebar.collapsed {
+            width: 15%;
+        }
+
+        .sidebar .sidebar-icon {
+            color: #000;
+            font-size: 16px;
+            padding: 2vh 3vw
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            /* يمكنك ضبطه حسب الحاجة */
+            display: flex;
+            align-items: center;
+            margin-bottom: 2vh;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1vh;
+            cursor: pointer;
+            transition: color 0.3s;
+            /*هنا*/
+            .sidebar .sidebar-icon i {
+                color: black;
+                /* ✅ اللون العادي أسود */
+                transition: color 0.3s;
+            }
+
+            .sidebar .sidebar-icon i.active-icon {
+                color: #8e2de2;
+                /* ✅ البنفسجي عند الضغط */
+            }
+
+            /* تباعد عمودي ثابت كنسبة من ارتفاع الشاشة */
+        }
+
+        .sidebar.collapsed .sidebar-icon {
+            justify-content: center;
+            padding: 15px 0;
+        }
+
+        .sidebar-icon i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .sidebar-icon span {
+            display: none;
+        }
+
+
+        .sidebar.collapsed ~ .toggle-btn {
+            left: 10%;
+        }
+        sidebar.collapsed ~ .content {
+            margin-left: 5%;
+        }
+        /* المحتوى */
+        .content {
+            margin-left: 0%;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            flex: 1;
+            height: 100%;
+            box-sizing: border-box;
+            margin-top: 5%;
+
+            display: flex;
+            /* لنجعلها flex container */
+            flex-direction: column;
+            /* ترتيب عمودي */
+            align-items: center;
+            /* توسيط أفقي */
+            gap: 20px;
+            /* مسافة بين البوكسات */
+        }
+
+        /* CSS: تنسيق مكان عرض Lottie */
+        #lottie-box {
+            width: 80%;
+            height: 25%;
+            margin: auto;
+            margin-top: 10%;
+            margin-right: 5%;
+            margin-left: auto;
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #user-info-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 7.5vh;
+            background-color: transparent;
+            z-index: 999;
+
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            /* سيُبقي العناصر في صف واحد */
+            gap: 10px;
+
+            padding: 0 1vh;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        <style>
+        .earnings-card {
+            background-color: #ffffffcc;
+            border-radius: 20px;
+            padding: 20px;
+            width: 90%;
+            max-width: 350px;
+            margin: 20px auto;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-family: 'Arial', sans-serif;
+        }
+
+        .amount {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2ecc71;
+            margin: 10px 0;
+        }
+
+        .suggestions {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .suggestions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .suggestions li {
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 5%;
+            border: 2px solid #000;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .note {
+            font-size: 14px;
+            color: #666;
+            margin-top: -4%;
+        }
+
+        /*بوكس تسجيل الخروج*/
+
+        #logoutBox {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 20%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            flex-direction: column;
+            /* واجعل الاتجاه عمودي */
+            align-items: center;
+            /* توسيط العناصر أفقيًا */
+            text-align: center;
+            /* توسيط النص */
+        }
+
+        .logout-box-content {
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        }
+
+        /* تأكد أن الفقرة تأخذ سطرًا كاملًا */
+        .logout-text {
+            display: block;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        /* حاوية الأزرار: أفقية وسط الصندوق */
+        .logout-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 11vw;
+            /* مسافة بين الزرين */
+        }
+
+        /* أنماط الأزرار كما لديك */
+        .logout-box-content button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        /* خاص بالزر الأحمر */
+        .logout-box-content button.logout-btn {
+            background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
+            color: white;
+        }
+        .logout-box-content button.logout-btn:hover {
+            background-color: #c62828;
+        }
+
+        /* خاص بزر الإغلاق الرمادي */
+        .logout-box-content button.cancel-btn {
+            background-color: #ccc;
+            color: black;
+        }
+        .logout-box-content button.cancel-btn:hover {
+            background-color: #aaa;
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+
+    <div id="user-info-bar">
+        <!-- الجهة اليسرى: اسم التطبيق -->
+        <div style="
+            margin-right: auto;
+            font-size: 20px;
+            font-weight: bold;
+            background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family:'Orbitron',sans-serif;
+            ">
+            SwapIO
+        </div>
+
+        <!-- الجهة اليمنى: الإيميل والدائرة -->
+
+        <div style="
+            border: 2px solid #8e2de2;
+            padding: 1px 5px;
+            border-radius: 10px;
+            margin-right: 0;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: transparent;
+            width: fit-content;
+            height:5vh;
+            ">
+
+            <span id="top-email" style="font-size: 14px; font-weight: bold;">
+                User@gmail.com
+            </span>
+            <div id="top-letter"
+                style="
+                width: 27px; height: 27px;
+                background-image: linear-gradient(90deg, #8e2de2, #4a00e0) ;
+                color: white;
+                font-weight: bold;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                ">
+                U
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="lottie-box">
+            <dotlottie-wc
+                src="https://lottie.host/78fb49f1-284f-4156-8ecf-8a963d061499/Jzuv2YYSo8.lottie"
+                style="width: 100%; height: 100%;"
+                speed="1"
+                autoplay
+                loop>
+            </dotlottie-wc>
+        </div>
+
+        <div id="box1" class="box" style="width: 70%; margin: 5px auto; padding: 25px; background-color: rgba(255, 255, 255, 0.79);margin-left:15%; border-radius: 20px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); font-family: 'Segoe UI', sans-serif;margin-bottom:80%;">
+            <h2 style="font-size: 26px; background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent; margin-bottom: 5%;text-align:center;"> جاهز لتحقيق أقصى استفادة من وقتك <i class="fas fa-chart-line"></i>  ؟ </h2>
+            <p style="font-size: 16px; color: #555; margin-bottom: 10%;text-align:center;font-weight: bold;">
+                ابدأ في مشاهدة الإعلانات المصممة خصيصًا لك وابدأ رحلتك نحو دخل إضافي بكل سهولة
+            </p>
+
+            <div style="text-align: center;">
+                <a href="#start" style="display: inline-block; width: 70%; text-align: center; padding: 12px 28px; background: linear-gradient(90deg, #8e2de2, #4a00e0); color: white; font-size: 16px; font-weight: bold; border-radius: 50px; text-decoration: none; transition: opacity 0.3s ease;">
+                    شاهد الآن
+                    <i class="fas fa-play-circle"></i>  <!-- دائرة بها زر تشغيل --></a>
+
+            </div>
+            <p style="font-size:14px;color:#d8b4fe;text-align:left;">
+                <a href="#">حول الإستخدام</a>
+            </p>
+        </div>
+
+        <div id="box2" class="box" style="
+            background-color: rgba(255, 255, 255, 0.79);
+            padding: 20px;
+            margin-bottom:80%;
+            margin-left:15%;
+            border-radius: 20px;
+            display: none;
+            color: white;
+            width: 70%;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            ">
+            <h2 style="margin-bottom: 10%;text-align:right;color:#000;">الرصيد الحالي     <i class="fas fa-money-check"></i> </h2>
+
+            <div style="background-image: linear-gradient(90deg, #8e2de2, #4a00e0); padding: 10px 20px ;margin-bottom:10%; border-radius: 15px; width: 85%;">
+                <!-- المحتوى هنا -->
+                <!-- محتوى العنصر هنا -->
+                <div style="font-size: 28px;font-family:'Orbitron',sans-serif; font-weight: bold ;text-align:center;">
+                    <span id="balance">0.00</span> USD
+                </div>
+            </div>
+
+            <p class="text-gray-700 text-sm" style="text-align:right;color:#000;">
+                أرباح اليوم <i class="fas fa-coins"></i>
+            </p>
+            <div style="font-size: 16px;background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent; font-weight: bold ;font-family:'Orbitron',sans-serif;text-align:right;margin-bottom:5%;">
+                <span id="daybalance">0.00</span> USD
+            </div>
+            <p class="text-gray-700 text-sm" style="text-align:right;color:#000;">
+                تمت مشاهدة<i class="fas fa-coins"></i>
+            </p>
+            <div style="font-size: 16px;background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent; font-weight: bold ;font-family:'Orbitron',sans-serif;text-align:right;margin-bottom:5%;">
+                <span id="Adswatch">00</span>
+
+            </div>
+
+
+
+
+
+            <div style="text-align:right;margin-bottom:11%;">
+                <p style=" display: inline;color:#d8b4fe;text-align:right ;">
+                    <a href="#">كيف تزيد أرباحك؟<a />
+                    </p>
+                </div>
+
+                <div style="text-align: center;margin-bottom:7%;">
+                    <a href="#start" style="display: inline-block; width: 70%; text-align: center; padding: 12px 28px; background: linear-gradient(90deg, #8e2de2, #4a00e0); color: white; font-size: 16px; font-weight: bold; border-radius: 50px; text-decoration: none; transition: opacity 0.3s ease;">
+                        شاهد أكثر
+                        <i class="fas fa-play-circle"></i></a>
+                </div>
+            </div>
+
+
+
+            <div id="box3" class="box" style="width: 80%;
+                height: 50%;display: none; padding: 20px; border: 1px solid #ccc; border-radius: 10px; text-align: center;margin-bottom:35%;margin-left:15%;background-color:transparent;">
+                <img src="https://example.com/image.png" style="width: 100%; height: 100%;">
+            </div>
+
+            <!-- ✅ بوكس خاص لواجهة السحب بالكامل -->
+
+
+            <div id="box4" class="box" style="width: 70% ; padding: 20px;display: none; border: 1px solid #ccc; border-radius: 20px; text-align: right;margin-bottom:60%;background-color: rgba(255, 255, 255, 0.79);margin-left:15%;">
+                <!-- محتوى البوكس هنا -->
+                <!-- ✅ الرصيد -->
+                <div class="mb-5 text-center">
+                    <p class="text-gray-700 text-sm">
+                        رصيدك هو <i class="fas fa-money-check"></i>
+                    </p>
+                    <div style="font-size: 16px; font-family:'Orbitron',sans-serif;font-weight: bold ;text-align:right;margin-bottom:7%;">
+                        <span id="balance">0.00</span> USD
+                    </div>
+                </div>
+
+                <!-- ✅ إدخال مبلغ السحب -->
+                <div class="input-container">
+                    <input type="number" placeholder="أدخل مبلغ السحب" />
+                <p class="note">
+                    الحد الأدنى للسحب هو 5 USD
+                </p>
+            </div>
+
+            ...
+            <!-- نافذة اختيار طريقة السحب -->
+
+            <select id="paymentSelect">
+                <option disabled selected>اختر وسيلة الدفع</option>
+            </select>
+
+            <!-- ✅ بيانات الحساب -->
+            <div class="mb-5">
+                <input type="email" name="email" autocomplete="email" id="accountInput" placeholder="أدخل بيانات الحساب"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            <!--حقول الحساب البنكي-->
+            <div id="bankFields" style="display: none; margin-top: 10px;">
+                <input id="bankNameHolder" type="text" placeholder="اسم صاحب الحساب البنكي" style="width:100%; margin-bottom:10px;">
+                <input id="bankIBAN" type="text" placeholder="رقم الحساب البنكي الدولي (IBAN)" style="width:100%; margin-bottom:10px;">
+                <input id="bankName" type="text" placeholder="اسم البنك" style="width:100%; margin-bottom:10px;">
+                <input id="bankSwift" type="text" placeholder="رمز SWIFT للبنك" style="width:100%;">
+            </div>
+
+        </div>
+
+        <!-- ✅ زر السحب الآن -->
+        <div style="text-align: center;margin-bottom:7%;">
+            <a href="#start" onclick="withdrawMoney(event)" style="display: inline-block; width: 30%; text-align: center; padding: 12px 28px; background: linear-gradient(90deg, #8e2de2, #4a00e0);; color: white; font-size: 16px; font-weight: bold; border-radius: 15px; text-decoration: none; transition: opacity 0.3s ease;margin-top:7%;">
+                <i class="fas fa-university"></i> إسحب
+            </a>
+        </div>
+
+        <p id="lastWithdrawStatus" onclick="window.location.href='withdraw.html'" style="font-size:16px;">
+            <a href="#" style="text-decoration: underline; color: inherit;">آخر عملية سحب</a>
+        </p>
+    </div>
+
+    <div id="box5" class="box" style="width: 70%; height: 45%;display: none; padding: 20px; border: 1px solid #ccc; border-radius: 20px; text-align: center; margin-bottom:60%;margin-left:15%; background-color: rgba(255, 255, 255, 0.79); box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+
+
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <h2 style="font-size: 14px;color:#000; margin: 0; display: flex;margin-bottom:3%; align-items: center;"> شارك رابط إحالتك مع الأصدقاء واكسب دوما نسبة 20% من ارباحهم اليومية  <i class="fas fa-share-nodes" style="margin-left: 5%;"></i>
+            </h2>
+        </div>
+
+        <div style="display: flex ;width:100%;height:18%;background-image: linear-gradient(90deg, #8e2de2, #4a00e0) ;border-radius:20px; align-items: center; gap: 10px; margin-bottom: 7%;">
+
+
+            <div class="sidebar-icon" style="display: flex ;margin-left:3%;margin-right:3%; ">
+                <i onclick="copyReferralText()" class="fas fa-copy"></i>
+            </div>
+            <p id="referralText"></p>
+
+        </div>
+
+        <p style="color: #000; font-size: 14px;margin-bottom:9%;">
+            <i class="fas fa-gift"></i>شارك رابطك الآن
+        </p>
+        <a href="#start" onclick="shareNow()" style="display: inline-block; width: 40%; text-align: center;margin-bottom:8%; padding: 12px 28px; background: linear-gradient(90deg, #8e2de2, #4a00e0); color: white; font-size: 16px; font-weight: bold; border-radius: 50px; text-decoration: none; transition: opacity 0.3s ease;">
+            مشاركة
+            <i class="fas fa-share-nodes"></i></a>
+
+        <p id="refText" style="color:#000;font-weight:600;font-size:12px;"></p>
+
+    </div>
+
+<!--بوكس تسجيل الخروج -->
+<div id="logoutBox" class="logout-box-content">
+
+    <p class="logout-text" style="font-size:20px;background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;margin-bottom:17%;">
+        هل أنت متأكد من تسجيل الخروج <i class="fas fa-sign-out-alt logout-icon"></i>؟
+    </p>
+    <div class="logout-buttons">
+        <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+        <button class="cancel-btn" onclick="hideLogoutBox()">إلغاء</button>
+    </div>
+
+
+</div>
+
+
+</div>
+
+
+<!-- الشريط الجانبي -->
+<div class="sidebar collapsed" id="sidebar">
+    <div class="sidebar-icon" id="toggleBtn">
+        <i class="fas fa-angle-right"></i><span>رجوع</span>
+    </div>
+    <div class="sidebar-icon" onclick="showBox('box1', this)">
+
+        <i class="fas fa-home" style="color:#8e2de2;"></i> <span> الرئيسية </span>
+
+    </div>
+    <div class="sidebar-icon" onclick="showBox('box2', this)">
+        <i class="fas fa-wallet"></i> <span> رصيدي </span>
+    </div>
+    <div class="sidebar-icon" onclick="showBox('box3', this)">
+        <i class="fas fa-bell"></i><span>الإشعارات</span>
+    </div>
+    <div class="sidebar-icon" onclick="showBox('box4', this)">
+        <i class="fas fa-credit-card"></i>
+        <span>سحب</span>
+    </div>
+    <div class="sidebar-icon" onclick="showBox('box5', this)">
+        <i class="fas fa-users"></i>
+        <span>مشاركة</span>
+    </div>
+    <div class="sidebar-icon">
+        <i class="fas fa-download"></i>
+        <span> التطبيق </span>
+    </div>
+    <a href="mailto:xpayapp144@gmail.com">
+        <div class="sidebar-icon">
+            <i class="fas fa-headset"></i>
+            <span>الدعم الفني</span>
+        </div>
+    </a>
+    <div class="sidebar-icon" onclick="showLogoutBox()">
+        <i class="fas fa-sign-out-alt"></i><span>تسجيل الخروج</span>
+    </div>
+</div>
+
+
+<!-- JavaScript -->
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
+<script>
+    // إعداد Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBhOhK3yCv4p-dhfXYx-w1aRB19a-VpRKY",
+        authDomain: "swapio-30675.firebaseapp.com",
+        projectId: "swapio-30675",
+        storageBucket: "swapio-30675.appspot.com",
+        messagingSenderId: "936588847751",
+        appId: "1:936588847751:web:81aa27a8a12fc6d6a06622",
+        measurementId: "G-L4RH076S6H",
+        databaseURL: "https://swapio-30675-default-rtdb.firebaseio.com",// ← أضف هذا السطر!
+
+    };
+
+    // تفعيل Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // التأكد من أن المستخدم مسجل الدخول
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            const userEmail = user.email;
+            const firstLetter = userEmail.charAt(0).toUpperCase();
+            console.log("Email:", userEmail);
+            console.log("First letter:", firstLetter);
+
+            //جلب كود الإحالة من القاعدة
+            function getReferralCode(uid) {
+                firebase.database().ref('users/' + uid).once('value').then((snapshot) => {
+                    const data = snapshot.val(); if (data && data.referralCode) {
+                        let myReferralCode = data.referralCode; let myReferral = myReferralCode;
+                    }
+                });
+            }
+
+
+            //  عرض رابط المشاركة
+document.getElementById("referralText").textContent = "https://SwapIO.com/?ref=" + myReferral;
+
+            //جلب ايميل المستخدم من فايرباس
+firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+const userEmail = user.email;
+const firstLetter = userEmail.charAt(0).toUpperCase();
+
+                    // تعيين الإيميل والحرف الأول في العناصر
+const topEmail = document.getElementById("top-email");
+const topLetter = document.getElementById("top-letter");
+const userEmailElement = document.getElementById("user-email");
+const emailLetterElement = document.getElementById("email-letter");
+
+if (topEmail) topEmail.textContent = userEmail;
+if (topLetter) topLetter.textContent = firstLetter;
+                    if (userEmailElement) userEmailElement.textContent = userEmail;
+                    if (emailLetterElement) emailLetterElement.textContent = firstLetter;
+                }
+            });
+
+            
+            // كود حفض بريد المستخدم الإلكتروني
+            const user = firebase.auth().currentUser;
+            if (user) {
+                const email = user.email;
+                localStorage.setItem("withdrawEmail", email);
+            }
+
+        } 
+        
+        
+    }
+
+</script>
+
+<script>
+
+            function showLogoutBox() {
+                document.getElementById("logoutBox").style.display = "flex";
+            }
+
+            function hideLogoutBox() {
+                document.getElementById("logoutBox").style.display = "none";
+            }
+            function logout() {
+                // تسجيل الخروج من Firebase
+                firebase.auth().signOut().then(() => {
+                    // بعد تسجيل الخروج بنجاح
+                    window.location.href = "index.html"; // توجيه المستخدم لصفحة الدخول
+                }).catch((error) => {
+                    console.error("فشل تسجيل الخروج من Firebase:", error);
+                });
+            }
+
+</script>
+
+<script>
+    // العنصر
+    const refText = document.getElementById("refText");
+    // الافتراضي
+    refText.textContent = "تمت إحالة 0 مستخدم";
+
+    // حاول تحديثه لو كان المستخدم مسجّلاً
+    firebase.auth().onAuthStateChanged(user => {
+        if (!user) return; // لا تغيّر شيئاً إذا لم يكن مسجَّلاً
+        const uid = user.uid;
+        firebase.database().ref(`referredUsers/${uid}/name`)
+        .once("value")
+        .then(snap => {
+            const name = snap.val();
+            // إذا كان هناك اسم، اعرضه، وإلا اترك الافتراضي (0)
+            if (name) refText.textContent = `تمت إحالة ${name}`;
+        })
+        .catch(() => {
+            /* نترك الافتراضي */
+        });
+    });
+</script>
+
+<script>
+    //تحديث الصفحة عند الرجوع
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+            location.reload();
+        }
+    });
+</script>
+
+<script>
+    // زر اضهار واخفاء الشريط الجانبي
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const icon = toggleBtn.querySelector('i');
+
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+
+        // تغيير الأيقونة
+        if (sidebar.classList.contains('collapsed')) {
+            icon.classList.remove('fa-angle-left');
+            icon.classList.add('fa-angle-right');
+        } else {
+            icon.classList.remove('fa-angle-right');
+            icon.classList.add('fa-angle-left');
+        }
+    });
+</script>
+
+<script>
+    function showBox(idToShow, iconElement) {
+        // إخفاء جميع البوكسات
+        const allBoxes = document.querySelectorAll('.box');
+        allBoxes.forEach(box => box.style.display = 'none');
+
+        // إظهار البوكس المطلوب فقط
+        const targetBox = document.getElementById(idToShow);
+        if (targetBox) targetBox.style.display = 'block';
+
+        // إعادة لون كل الأيقونات إلى الأسود
+        const allIcons = document.querySelectorAll('.sidebar-icon i');
+        allIcons.forEach(icon => icon.style.color = 'black');
+
+        // تلوين الأيقونة المضغوط عليها
+        if (iconElement && iconElement.querySelector('i')) {
+            iconElement.querySelector('i').style.color = '#8e2de2'; // اختر اللون الذي تريده
+        }
+    }
+</script>
+
+<script>
+    window.onload = function () {
+        const payments = {
+            "PayPal": "أدخل بريدك في PayPal",
+            "Redotpay": "أدخل ID Redotpay",
+            "Neteller": "أدخل بريدك في Neteller",
+            "Skrill": "أدخل بريد Skrill",
+            "USDT (TRC20)": "أدخل عنوان محفظة USDT (TRC20)",
+            "Bank Transfers": null // هذا له مجموعة حقول خاصة
+        };
+
+        const select = document.getElementById("paymentSelect");
+        const input = document.getElementById("accountInput");
+        const bankFields = document.getElementById("bankFields");
+
+        // تعبئة القائمة بالخيارات
+        for (let method in payments) {
+            const option = document.createElement("option");
+            option.textContent = method;
+            option.value = method;
+            select.appendChild(option);
+        }
+
+        // التعامل مع تغيّر الخيار
+        select.addEventListener("change", function () {
+            const selected = select.value;
+            const placeholder = payments[selected];
+
+            // إخفاء كل الحقول أولاً
+            input.style.display = "none";
+            bankFields.style.display = "none";
+
+            if (placeholder === null) {
+                bankFields.style.display = "block";
+            } else {
+                input.style.display = "block";
+                input.placeholder = placeholder;
+                input.value = "";
+            }
+        });
+    }
+</script>
+
+<script>
+    //اضهار نافذة المشاركة
+    function shareNow() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'انضم إليّ واربح معنا!',
+                text: 'شارك واربح نسبة من أرباح أصدقائك كل يوم!',
+                url: window.location.href
+            }).then(() => {
+                console.log('تمت المشاركة بنجاح');
+            }).catch((error) => {
+                console.error('حدث خطأ أثناء المشاركة:', error);
+            });
+        } else {
+            alert('المشاركة غير مدعومة على هذا المتصفح.');
+        }
+    }
+</script>
+
+<
+
+    <script>
+        // نسخ رابط المشاركة للحافضة
+        function copyReferralText() {
+            const text = document.getElementById("referralText").innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("تم النسخ إلى الحافضة");
+            }).catch(err => {
+                alert("حدث خطأ في النسخ ");
+            });
+        }
+    </script>
+    <!--جلب الرصيد-->
+    <script type="module">
+        import {
+            getAuth,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js";
+        import {
+            getDatabase,
+            ref,
+            get,
+            child
+        } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database-compat.js";
+
+        const auth = getAuth();
+        const db = getDatabase();
+
+        // متغير عام للاحتفاظ بالرصيد
+        window.userBalance = null;
+
+        // دالة جلب الرصيد وتخزينه، ثم تنفيذ callback إن وُجد
+        window.fetchUserBalance = function(callback) {
+            onAuthStateChanged(auth, user => {
+                if (!user) return;
+
+                get(child(ref(db), `users/${user.uid}/balance`))
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        window.userBalance = snapshot.val();
+                    }
+                })
+                .catch(console.error)
+                .finally(() => {
+                    if (typeof callback === "function") {
+                        callback(); // نفّذ الكود داخل withdrawMoney بعد الجلب
+                    }
+                });
+            });
+        };
+    </script>
+    <script>
+
+        //دالة السحب
+        function withdrawMoney(event) {
+            event.preventDefault(); // منع التنقل
+
+            // 1) تحقق من الاتصال:
+            if (!navigator.onLine) {
+                return alert("⚠ لا يوجد اتصال بالإنترنت، إتصل بالشبكة وأعد المحاولة.");
+            }
+
+            fetchUserBalance(() => {
+
+                const amount = document.querySelector('input[type="number"]').value.trim();
+                const paymentMethod = document.getElementById('paymentSelect').value;
+                const account = document.getElementById('accountInput').value.trim();
+
+                // التحقق أولاً من الحقول إذا كانت تحويل بنكي
+                if (paymentMethod.trim().toLowerCase().includes("bank transfers")) {
+                    const bankNameHolder = document.getElementById("bankNameHolder").value.trim();
+                    const bankIBAN = document.getElementById("bankIBAN").value.trim();
+                    const bankName = document.getElementById("bankName").value.trim();
+                    const bankSwift = document.getElementById("bankSwift").value.trim();
+
+                    if (!bankNameHolder || !bankIBAN || !bankName || !bankSwift) {
+                        alert("يرجى ملء جميع بيانات التحويل البنكي.");
+                        return;
+                    }
+
+                    // حفظ بيانات التحويل البنكي
+                    localStorage.setItem("bankNameHolder", bankNameHolder);
+                    localStorage.setItem("bankIBAN", bankIBAN);
+                    localStorage.setItem("bankName", bankName);
+                    localStorage.setItem("bankSwift", bankSwift);
+                }
+                // إذا لم يكن تحويل بنكي، تحقق من الحقول العامة فقط
+                else if (!amount || !account || paymentMethod === "اختر وسيلة الدفع") {
+                    alert("يرجى ملء مبلغ السحب، وبيانات الحساب، واختيار وسيلة الدفع.");
+                    return;
+                }
+
+                if (parseFloat(amount) > userBalance) {
+                    alert("رصيدك غير كافي لإتمام السحب.رصيدك هو:" + userBalance + " USD");
+                    return;
+                }
+
+                // التحقق من الحد الأدنى للسحب
+                if (parseFloat(amount) < 5) {
+                    alert("الحد الأدنى للسحب هو 5 USD.");
+                    return;
+                }
+
+
+                // حفظ البيانات العامة
+                localStorage.setItem("withdrawAmount", amount);
+                localStorage.setItem("withdrawAccount", account);
+                localStorage.setItem("withdrawMethod", paymentMethod);
+
+                // حفظ التاريخ والوقت
+                const now = new Date().toLocaleString();
+                localStorage.setItem("requestDate", now);
+
+                // حفظ رقم العملية
+                const transactionId = "SWP-" + Math.floor(Math.random() * 1000000000);
+                localStorage.setItem("transactionId", transactionId);
+
+                //حفظ uid المستخدم
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        const uid = user.uid;
+                        localStorage.setItem("userUID", uid); // ✅ حفظ UID في localStorage
+                    }
+                });
+                
+            // خصم مبلغ السحب من رصيد المستخدم في قاعدة البيانات
+firebase.auth().onAuthStateChanged(user => {
+  if (!user) return;
+  const uid = user.uid;
+  const amountToDeduct = parseFloat(amount);
+
+  // جلب الرصيد الحالي
+  firebase.database().ref(`users/${uid}/balance`).once("value")
+    .then(snapshot => {
+      const currentBalance = parseFloat(snapshot.val()) || 0;
+      let newBalance = currentBalance - amountToDeduct;
+      if (newBalance < 0) newBalance = 0;
+
+      // تحديث الرصيد الجديد
+      return firebase.database().ref(`users/${uid}`).update({ balance: newBalance });
+    })
+    .catch(console.error);
+});    
+                
+
+                // إشعار النجاح ثم الانتقال
+                alert("✅ تم إرسال طلب السحب بنجاح!");
+
+                // الانتقال لصفحة التأكيد مع فرض تحديث
+                window.location.href = "withdraw.html?refresh=" + new Date().getTime();
+            });
+        }
+
+    </script>
+    <script>
+        const statusElement = document.getElementById("lastWithdrawStatus");
+        statusElement.style.display = "none"; // إخفاء العنصر في البداية
+
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) return;
+
+            const uid = user.uid;
+
+            firebase.database().ref(`withdraw/${uid}/last/status`)
+            .once("value")
+            .then((snapshot) => {
+                const status = snapshot.val();
+
+                if (status === 1) {
+                    statusElement.innerHTML = 'آخر عملية سحب <span style="color:green;">تم السحب</span>';
+                    statusElement.style.display = "block"; // إظهار العنصر فقط إذا كانت 1
+                }
+            })
+            .catch(() => {
+                // يمكن تجاهل الخطأ أو إضافته لو أردت
+            });
+        });
+    </script>
+    <script>
+
+        function startWithdrawAnimation() {
+            const text = document.getElementById("withdrawText");
+            const loader = document.getElementById("withdrawLoader");
+
+            text.style.display = "none";
+            loader.style.display = "inline-block";
+
+            // نفّذ عملية السحب هنا
+            withdrawMoney();
+        }
+
+
+    </script>
+
+    <script>
+        //جلب عدد المشاهدات من فايرباس
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) return;
+            const uid = user.uid;
+
+            // جلب القيمة من المسار المناسب في فايرباس
+            firebase.database()
+            .ref(`adsWatch/${uid}/count`) // غيّر المسار حسب مكان التخزين عندك
+            .once('value')
+            .then(snap => {
+                const value = snap.val();
+                document.getElementById('Adswatch').textContent = value ?? '00';
+            })
+            .catch(err => {
+                console.error("خطأ في جلب عدد الإعلانات:", err);
+                document.getElementById('Adswatch').textContent = '00';
+            });
+        });
+    </script>
+
+    <script>
+        //جلب الرصيد من فايرباس
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) return;
+            const uid = user.uid;
+
+            // جلب الأرباح من المسار earnings
+            firebase.database()
+            .ref(`users/${uid}/balance`) // غيّر المسار حسب قاعدة بياناتك
+            .once('value')
+            .then(snapshot => {
+                const earnings = snapshot.val();
+                document.getElementById("balance").textContent = earnings ?? "0.00";
+            })
+            .catch(err => {
+                console.error("خطأ في جلب الأرباح:", err);
+                document.getElementById("balance").textContent = "0.00";
+            });
+        });
+    </script>
+
+    <script>
+        //جلب قيمة الرصيد اليومي
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) return;
+            const uid = user.uid;
+
+            // جلب الرصيد اليومي من المسار
+            firebase.database()
+            .ref(`users/${uid}/daybalance`) // غيّر المسار إذا كنت تستخدم اسمًا آخر
+            .once('value')
+            .then(snapshot => {
+                const dayBalance = snapshot.val();
+                document.getElementById("daybalance").textContent = (dayBalance ?? 0).toFixed(2);
+            })
+            .catch(err => {
+                console.error("خطأ في جلب الرصيد اليومي:", err);
+                document.getElementById("daybalance").textContent = "0.00";
+            });
+        });
+    </script>
+</body>
+</html>
