@@ -850,6 +850,11 @@ if (topLetter) topLetter.textContent = firstLetter;
         };
     </script>
     <script>
+window.onerror = function(message, source, lineno, colno, error) {
+  alert("خطأ: " + message + "\nفي: " + source + ":" + lineno);
+};
+    </script>
+    <script>
 
         //دالة السحب
         function withdrawMoney(event) {
