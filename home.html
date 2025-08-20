@@ -914,44 +914,128 @@ if (topLetter) topLetter.textContent = firstLetter;
                 // حفظ رقم العملية
                 const transactionId = "SWP-" + Math.floor(Math.random() * 1000000000);
                 localStorage.setItem("transactionId", transactionId);
+<script>
+  //دالة السحب (نفس المنطق والشكل مع حمايات بسيطة)
+  function withdrawMoney(event) {
+    event.preventDefault(); // منع التنقل
 
-                //حفظ uid المستخدم
-                firebase.auth().onAuthStateChanged((user) => {
-                    if (user) {
-                        const uid = user.uid;
-                        localStorage.setItem("userUID", uid); // ✅ حفظ UID في localStorage
-                    }
-                });
-                
-            // خصم مبلغ السحب من رصيد المستخدم في قاعدة البيانات
-firebase.auth().onAuthStateChanged(user => {
-  if (!user) return;
-  const uid = user.uid;
-  const amountToDeduct = parseFloat(amount);
+    // 1) تحقق من الاتصال:
+    if (!navigator.onLine) {
+      return alert("⚠ لا يوجد اتصال بالإنترنت، إتصل بالشبكة وأعد المحاولة.");
+    }
 
-  // جلب الرصيد الحالي
-  firebase.database().ref(`users/${uid}/balance`).once("value")
-    .then(snapshot => {
-      const currentBalance = parseFloat(snapshot.val()) || 0;
-      let newBalance = currentBalance - amountToDeduct;
-      if (newBalance < 0) newBalance = 0;
+    // نادِ fetchUserBalance إن كانت موجودة، وإلا أكمل مباشرةً
+    var proceed = function () {
 
-      // تحديث الرصيد الجديد
-      return firebase.database().ref(`users/${uid}`).update({ balance: newBalance });
-    })
-    .catch(console.error);
-});    
-                
+      const amount = (document.querySelector('input[type="number"]') || {value:""}).value.trim();
+      const paymentMethod = (document.getElementById('paymentSelect') || {value:""}).value;
+      const account = (document.getElementById('accountInput') || {value:""}).value.trim();
 
-                // إشعار النجاح ثم الانتقال
-                alert("✅ تم إرسال طلب السحب بنجاح!");
+      // التحقق أولاً من الحقول إذا كانت تحويل بنكي
+      if (paymentMethod.trim().toLowerCase().includes("bank transfers")) {
+        const bankNameHolderEl = document.getElementById("bankNameHolder");
+        const bankIBANEl      = document.getElementById("bankIBAN");
+        const bankNameEl      = document.getElementById("bankName");
+        const bankSwiftEl     = document.getElementById("bankSwift");
 
-                // الانتقال لصفحة التأكيد مع فرض تحديث
-                window.location.href = "withdraw.html?refresh=" + new Date().getTime();
-            });
+        const bankNameHolder = bankNameHolderEl ? bankNameHolderEl.value.trim() : "";
+        const bankIBAN       = bankIBANEl ? bankIBANEl.value.trim() : "";
+        const bankName       = bankNameEl ? bankNameEl.value.trim() : "";
+        const bankSwift      = bankSwiftEl ? bankSwiftEl.value.trim() : "";
+
+        if (!bankNameHolder || !bankIBAN || !bankName || !bankSwift) {
+          alert("يرجى ملء جميع بيانات التحويل البنكي.");
+          return;
         }
 
-    </script>
+        // حفظ بيانات التحويل البنكي
+        localStorage.setItem("bankNameHolder", bankNameHolder);
+        localStorage.setItem("bankIBAN", bankIBAN);
+        localStorage.setItem("bankName", bankName);
+        localStorage.setItem("bankSwift", bankSwift);
+      }
+      // إذا لم يكن تحويل بنكي، تحقق من الحقول العامة فقط
+      else if (!amount || !account || paymentMethod === "اختر وسيلة الدفع") {
+        alert("يرجى ملء مبلغ السحب، وبيانات الحساب، واختيار وسيلة الدفع.");
+        return;
+      }
+
+      // فحص الرصيد بشكل آمن
+      var ub = (typeof userBalance !== "undefined") ? parseFloat(userBalance) : NaN;
+      if (isNaN(ub)) {
+        alert("تعذّر التحقق من رصيدك، حاول لاحقًا.");
+        return;
+      }
+
+      if (parseFloat(amount) > ub) {
+        alert("رصيدك غير كافي لإتمام السحب.رصيدك هو:" + ub + " USD");
+        return;
+      }
+
+      // التحقق من الحد الأدنى للسحب
+      if (parseFloat(amount) < 5) {
+        alert("الحد الأدنى للسحب هو 5 USD.");
+        return;
+      }
+
+      // حفظ البيانات العامة
+      localStorage.setItem("withdrawAmount", amount);
+      localStorage.setItem("withdrawAccount", account);
+      localStorage.setItem("withdrawMethod", paymentMethod);
+
+      // حفظ التاريخ والوقت
+      const now = new Date().toLocaleString();
+      localStorage.setItem("requestDate", now);
+
+      // حفظ رقم العملية
+      const transactionId = "SWP-" + Math.floor(Math.random() * 1000000000);
+      localStorage.setItem("transactionId", transactionId);
+
+      //حفظ uid المستخدم (نفس الفكرة: currentUser أو انتظار onAuthStateChanged)
+      var cu = (firebase.auth && firebase.auth().currentUser) ? firebase.auth().currentUser : null;
+      if (cu) {
+        localStorage.setItem("userUID", cu.uid);
+      } else {
+        firebase.auth().onAuthStateChanged(function(user) {
+          if (user) {
+            localStorage.setItem("userUID", user.uid);
+          }
+        });
+      }
+
+      // خصم مبلغ السحب من رصيد المستخدم في قاعدة البيانات (نفس منطقك)
+      firebase.auth().onAuthStateChanged(function(user) {
+        // لو ما جاء user من الحدث، جرّب currentUser (لنغيّر المنطق؟ لا، فقط حماية)
+        user = user || (firebase.auth ? firebase.auth().currentUser : null);
+        if (!user) return;
+
+        const uid = user.uid;
+        const amountToDeduct = parseFloat(amount);
+
+        firebase.database().ref("users/" + uid + "/balance").once("value")
+          .then(function(snapshot) {
+            const currentBalance = parseFloat(snapshot.val()) || 0;
+            var newBalance = currentBalance - amountToDeduct;
+            if (newBalance < 0) newBalance = 0;
+
+            return firebase.database().ref("users/" + uid).update({ balance: newBalance });
+          })
+          .catch(function(err){ console.error(err); });
+      });
+
+      // إشعار النجاح ثم الانتقال (كما هو دون تغيير مكانه)
+      alert("✅ تم إرسال طلب السحب بنجاح!");
+      window.location.href = "withdraw.html?refresh=" + new Date().getTime();
+    };
+
+    if (typeof fetchUserBalance === "function") {
+      try { fetchUserBalance(proceed); } catch(e){ console.warn(e); proceed(); }
+    } else {
+      // لو الدالة غير موجودة في الاستضافة، لا تعطّل التنفيذ
+      proceed();
+    }
+  }
+</script>
     <script>
         const statusElement = document.getElementById("lastWithdrawStatus");
         statusElement.style.display = "none"; // إخفاء العنصر في البداية
