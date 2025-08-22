@@ -247,6 +247,22 @@ async function handleRegister() {
       referredBy: referralCodeFromURL || null
     });
 
+    // دالة توليد كود إحالة (كما في كودك)
+function generateReferralCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let code = "";
+  for (let i = 0; i < 10; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// استخراج كود الإحالة من الرابط (كما كان)
+function getReferralCodeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref');
+  }
+
     // إذا فيه كود إحالة، حدث بيانات الشخص المحيل
     if (referralCodeFromURL) {
       const snapshot = await firebase.database().ref("users")
@@ -276,21 +292,7 @@ async function handleRegister() {
   }
 }
 
-// دالة توليد كود إحالة (كما في كودك)
-function generateReferralCode() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let code = "";
-  for (let i = 0; i < 10; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
 
-// استخراج كود الإحالة من الرابط (كما كان)
-function getReferralCodeFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('ref');
-}
 </script>
    
    
