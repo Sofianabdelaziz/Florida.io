@@ -384,7 +384,7 @@
                 <!-- المحتوى هنا -->
                 <!-- محتوى العنصر هنا -->
                 <div style="font-size: 28px;font-family:'Orbitron',sans-serif; font-weight: bold ;text-align:center;">
-                    <span id="balance">0.00</span> USD
+                    <span class="balance">0.00</span> USD
                 </div>
             </div>
 
@@ -441,7 +441,7 @@
                         رصيدك هو <i class="fas fa-money-check"></i>
                     </p>
                     <div style="font-size: 16px; font-family:'Orbitron',sans-serif;font-weight: bold ;text-align:right;margin-bottom:7%;">
-                        <span id="balance">0.00</span> USD
+                        <span class="balance">0.00</span> USD
                     </div>
                 </div>
 
@@ -1038,24 +1038,28 @@ window.onerror = function(message, source, lineno, colno, error) {
     </script>
 
     <script>
-        //جلب الرصيد من فايرباس
-        firebase.auth().onAuthStateChanged(user => {
-            if (!user) return;
-            const uid = user.uid;
+    firebase.auth().onAuthStateChanged(user => {
+        if (!user) return;
+        const uid = user.uid;
 
-            // جلب الأرباح من المسار earnings
-            firebase.database()
-            .ref(`users/${uid}/balance`) // غيّر المسار حسب قاعدة بياناتك
-            .once('value')
-            .then(snapshot => {
-                const earnings = snapshot.val();
-                document.getElementById("balance").textContent = earnings ?? "0.00";
-            })
-            .catch(err => {
-                console.error("خطأ في جلب الأرباح:", err);
-                document.getElementById("balance").textContent = "0.00";
+        firebase.database()
+        .ref(`users/${uid}/balance`)
+        .once('value')
+        .then(snapshot => {
+            const earnings = snapshot.val() ?? 0;
+            
+            // جلب كل العناصر اللي عندها class="balance"
+            document.querySelectorAll(".balance").forEach(el => {
+                el.textContent = earnings.toFixed(2);
+            });
+        })
+        .catch(err => {
+            console.error("خطأ في جلب الأرباح:", err);
+            document.querySelectorAll(".balance").forEach(el => {
+                el.textContent = "0.00";
             });
         });
+    });
     </script>
 
 <script>
