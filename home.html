@@ -1058,25 +1058,24 @@ window.onerror = function(message, source, lineno, colno, error) {
         });
     </script>
 
-    <script>
-        //جلب الرصيد من فايرباس
-        firebase.auth().onAuthStateChanged(user => {
-            if (!user) return;
-            const uid = user.uid;
+<script>
+    // جلب الرصيد اليومي من فايرباس
+    firebase.auth().onAuthStateChanged(user => {
+        if (!user) return;
+        const uid = user.uid;
 
-            // جلب الأرباح من المسار earnings
-            firebase.database()
-            .ref(`users/${uid}/daybalance`) // غيّر المسار حسب قاعدة بياناتك
-            .once('value')
-            .then(snapshot => {
-                const earnings = snapshot.val();
-                document.getElementById("daybalance").textContent = daybalance ?? "0.00";
-            })
-            .catch(err => {
-                console.error("خطأ في جلب الأرباح:", err);
-                document.getElementById("daybalance").textContent = "0.00";
-            });
+        firebase.database()
+        .ref(`users/${uid}/daybalance`) // غيّر المسار حسب قاعدة بياناتك
+        .once('value')
+        .then(snapshot => {
+            const dayBalance = snapshot.val();
+            document.getElementById("daybalance").textContent = (dayBalance ?? 0).toFixed(2);
+        })
+        .catch(err => {
+            console.error("خطأ في جلب الرصيد اليومي:", err);
+            document.getElementById("daybalance").textContent = "0.00";
         });
-    </script>
+    });
+</script>
 </body>
 </html>
