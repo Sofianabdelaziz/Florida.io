@@ -636,7 +636,7 @@ if (topLetter) topLetter.textContent = firstLetter;
         } 
         
         
-    }
+    });
 
 </script>
 
@@ -663,26 +663,26 @@ if (topLetter) topLetter.textContent = firstLetter;
 
 <script>
     // العنصر
-    const refText = document.getElementById("refText");
-    // الافتراضي
+const refText = document.getElementById("refText");
+
+if (refText) { // ✅ فحص وجود العنصر
     refText.textContent = "تمت إحالة 0 مستخدم";
 
-    // حاول تحديثه لو كان المستخدم مسجّلاً
     firebase.auth().onAuthStateChanged(user => {
-        if (!user) return; // لا تغيّر شيئاً إذا لم يكن مسجَّلاً
+        if (!user) return; 
         const uid = user.uid;
         firebase.database().ref(`referredUsers/${uid}/name`)
         .once("value")
         .then(snap => {
             const name = snap.val();
-            // إذا كان هناك اسم، اعرضه، وإلا اترك الافتراضي (0)
             if (name) refText.textContent = `تمت إحالة ${name}`;
         })
         .catch(() => {
             /* نترك الافتراضي */
         });
     });
-</script>
+    }
+    </script>
 
 <script>
     //تحديث الصفحة عند الرجوع
@@ -696,13 +696,14 @@ if (topLetter) topLetter.textContent = firstLetter;
 <script>
     // زر اضهار واخفاء الشريط الجانبي
     const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleBtn');
+const toggleBtn = document.getElementById('toggleBtn');
+
+if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
     const icon = toggleBtn.querySelector('i');
 
     toggleBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
 
-        // تغيير الأيقونة
         if (sidebar.classList.contains('collapsed')) {
             icon.classList.remove('fa-angle-left');
             icon.classList.add('fa-angle-right');
@@ -711,6 +712,7 @@ if (topLetter) topLetter.textContent = firstLetter;
             icon.classList.add('fa-angle-left');
         }
     });
+    }
 </script>
 
 <script>
@@ -796,7 +798,7 @@ if (topLetter) topLetter.textContent = firstLetter;
     }
 </script>
 
-<
+
 
     <script>
         // نسخ رابط المشاركة للحافضة
@@ -810,44 +812,28 @@ if (topLetter) topLetter.textContent = firstLetter;
         }
     </script>
     <!--جلب الرصيد-->
-    <script type="module">
-        import {
-            getAuth,
-            onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js";
-        import {
-            getDatabase,
-            ref,
-            get,
-            child
-        } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database-compat.js";
+<script>
+  // compat version: جلب رصيد المستخدم وتخزينه ثم تنفيذ callback
+  window.userBalance = null;
 
-        const auth = getAuth();
-        const db = getDatabase();
-
-        // متغير عام للاحتفاظ بالرصيد
-        window.userBalance = null;
-
-        // دالة جلب الرصيد وتخزينه، ثم تنفيذ callback إن وُجد
-        window.fetchUserBalance = function(callback) {
-            onAuthStateChanged(auth, user => {
-                if (!user) return;
-
-                get(child(ref(db), `users/${user.uid}/balance`))
-                .then(snapshot => {
-                    if (snapshot.exists()) {
-                        window.userBalance = snapshot.val();
-                    }
-                })
-                .catch(console.error)
-                .finally(() => {
-                    if (typeof callback === "function") {
-                        callback(); // نفّذ الكود داخل withdrawMoney بعد الجلب
-                    }
-                });
-            });
-        };
-    </script>
+  window.fetchUserBalance = function(callback) {
+    // نتأكد من المصادقة
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        if (typeof callback === "function") callback();
+        return;
+      }
+      firebase.database().ref('users/' + user.uid + '/balance').once('value')
+        .then(function(snap) {
+          window.userBalance = snap.exists() ? snap.val() : null;
+        })
+        .catch(function(e){ console.error(e); })
+        .finally(function() {
+          if (typeof callback === "function") callback();
+        });
+    });
+  };
+</script>
     <script>
 window.onerror = function(message, source, lineno, colno, error) {
   alert("خطأ: " + message + "\nفي: " + source + ":" + lineno);
