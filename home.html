@@ -1010,7 +1010,7 @@ window.onerror = function(message, source, lineno, colno, error) {
 
             // جلب القيمة من المسار المناسب في فايرباس
             firebase.database()
-            .ref(`adsWatch/${uid}/count`) // غيّر المسار حسب مكان التخزين عندك
+            .ref(`users/${uid}/adsWatch`) // غيّر المسار حسب مكان التخزين عندك
             .once('value')
             .then(snap => {
                 const value = snap.val();
