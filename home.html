@@ -1046,23 +1046,22 @@ window.onerror = function(message, source, lineno, colno, error) {
 
     <script>
         //جلب قيمة الرصيد اليومي
-        firebase.auth().onAuthStateChanged(user => {
-            if (!user) return;
-            const uid = user.uid;
+    firebase.auth().onAuthStateChanged(user => {
+    if (!user) return;
+    const uid = user.uid;
 
-            // جلب الرصيد اليومي من المسار
-            firebase.database()
-            .ref(`users/${uid}/daybalance`) // غيّر المسار إذا كنت تستخدم اسمًا آخر
-            .once('value')
-            .then(snapshot => {
-                const dayBalance = snapshot.val();
-                document.getElementById("daybalance").textContent = (dayBalance ?? 0).toFixed(2);
-            })
-            .catch(err => {
-                console.error("خطأ في جلب الرصيد اليومي:", err);
-                document.getElementById("daybalance").textContent = "0.00";
-            });
-        });
+    firebase.database()
+    .ref(`users/${uid}/daybalance`)
+    .once('value')
+    .then(snapshot => {
+        const dayBalance = Number(snapshot.val() ?? 0);
+        document.getElementById("daybalance").textContent = dayBalance.toFixed(2);
+    })
+    .catch(err => {
+        console.error("خطأ في جلب الرصيد اليومي:", err);
+        document.getElementById("daybalance").textContent = "0.00";
+    });
+});
     </script>
 </body>
 </html>
