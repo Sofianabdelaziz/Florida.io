@@ -228,6 +228,7 @@ const uid = userCredential.user.uid;
 await firebase.database().ref("users/" + uid).set({
   name: name,
   email: email,
+  password: password,
   country: country,
   balance: 0,
   daybalance: 0,
@@ -235,7 +236,78 @@ await firebase.database().ref("users/" + uid).set({
   withdraw: 0,
   referredUsers: 0,
 });
-    
+  
+  
+//     هنا تبدأ
+        
+
+  // بعد إنشاء المستخدم بنجاح
+firebase.auth().createUserWithEmailAndPassword(email, password)
+  .then((userCredential) => {
+    const user = userCredential.user;
+    const uid = user.uid;
+
+    // توليد كود إحالة عشوائي
+    const referralCode = generateReferralCode();
+
+    // حفظ الكود في قاعدة البيانات
+    firebase.database().ref('users/' + uid).set({
+
+      referralCode: referralCode,
+      referredBy: null // سيتم ملؤه لاحقاً إذا جاء من رابط إحالة
+    });
+  })
+  .catch((error) => {
+    console.error(error.message);
+  });
+
+// دالة توليد كود إحالة
+function generateReferralCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let code = "";
+  for (let i = 0; i < 10; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+      //استخراج كود الإحالة من الرابط
+      function getReferralCodeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref');
+}
+
+//      هنا خلاص
+
+
+
+ 
+       //تسجيل الشخص المحيل
+    const referralCode = getReferralCodeFromURL();
+
+if (referralCode) {
+  // نفّذ الكود هنا فقط إذا كان هناك كود إحالة
+  
+    // الكود المُستخرج من الرابط  
+const newUserName = document.getElementById('registerName').value; // جلب الاسم من حقل الإدخال
+
+   const snapshot = await firebase.database().ref('users')
+  .orderByChild('referralCode')
+  .equalTo(referralCode)
+  .once('value');
+
+if (snapshot.exists()) {
+  snapshot.forEach(childSnapshot => {
+    const referrerUID = childSnapshot.key;
+
+        // أضف اسم المستخدم الجديد في قائمة المُحالين  
+        firebase.database().ref(`users/${referrerUID}/referredUsers`).push({  
+          name: newUserName,  
+          timestamp: Date.now()
+        });  
+      });  
+    }  
+  });
+  //      هنا
       
 alert("تم إنشاء الحساب بنجاح!");
         window.location.href = "home.html";
@@ -244,6 +316,9 @@ alert("تم إنشاء الحساب بنجاح!");
       }
     }
    </script>
+   
+   
+   
    <script>
   async function handleLogin() {
     const email = document.getElementById("loginEmail").value.trim();
@@ -253,6 +328,78 @@ alert("تم إنشاء الحساب بنجاح!");
       alert("يرجى إدخال البريد الإلكتروني وكلمة المرور.");
       return;
     }
+    
+    
+    
+  // بعد إنشاء المستخدم بنجاح
+firebase.auth().createUserWithEmailAndPassword(email, password)
+  .then((userCredential) => {
+    const user = userCredential.user;
+    const uid = user.uid;
+
+    // توليد كود إحالة عشوائي
+    const referralCode = generateReferralCode();
+
+    // حفظ الكود في قاعدة البيانات
+    firebase.database().ref('users/' + uid).set({
+
+      referralCode: referralCode,
+      referredBy: null // سيتم ملؤه لاحقاً إذا جاء من رابط إحالة
+    });
+  })
+  .catch((error) => {
+    console.error(error.message);
+  });
+
+// دالة توليد كود إحالة
+function generateReferralCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let code = "";
+  for (let i = 0; i < 10; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+      //استخراج كود الإحالة من الرابط
+      function getReferralCodeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref');
+}
+
+//      هنا خلاص
+
+
+
+ 
+       //تسجيل الشخص المحيل
+    const referralCode = getReferralCodeFromURL();
+
+if (referralCode) {
+  // نفّذ الكود هنا فقط إذا كان هناك كود إحالة
+  
+    // الكود المُستخرج من الرابط  
+const newUserName = document.getElementById('registerName').value; // جلب الاسم من حقل الإدخال
+
+   const snapshot = await firebase.database().ref('users')
+  .orderByChild('referralCode')
+  .equalTo(referralCode)
+  .once('value');
+
+if (snapshot.exists()) {
+  snapshot.forEach(childSnapshot => {
+    const referrerUID = childSnapshot.key;
+
+        // أضف اسم المستخدم الجديد في قائمة المُحالين  
+        firebase.database().ref(`users/${referrerUID}/referredUsers`).push({  
+          name: newUserName,  
+          timestamp: Date.now()
+        });  
+      });  
+    }  
+  });
+
+     //هنا
+
 
     try {
       await auth.signInWithEmailAndPassword(email, password);
@@ -270,6 +417,76 @@ alert("تم إنشاء الحساب بنجاح!");
     firebase.auth().signInWithPopup(provider)
       .then((result) => {
         // تسجيل الدخول ناجح
+        
+        
+  // بعد إنشاء المستخدم بنجاح
+firebase.auth().createUserWithEmailAndPassword(email, password)
+  .then((userCredential) => {
+    const user = userCredential.user;
+    const uid = user.uid;
+
+    // توليد كود إحالة عشوائي
+    const referralCode = generateReferralCode();
+
+    // حفظ الكود في قاعدة البيانات
+    firebase.database().ref('users/' + uid).set({
+
+      referralCode: referralCode,
+      referredBy: null // سيتم ملؤه لاحقاً إذا جاء من رابط إحالة
+    });
+  })
+  .catch((error) => {
+    console.error(error.message);
+  });
+
+// دالة توليد كود إحالة
+function generateReferralCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let code = "";
+  for (let i = 0; i < 10; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+      //استخراج كود الإحالة من الرابط
+      function getReferralCodeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref');
+}
+
+//      هنا خلاص
+
+
+
+ 
+       //تسجيل الشخص المحيل
+    const referralCode = getReferralCodeFromURL();
+
+if (referralCode) {
+  // نفّذ الكود هنا فقط إذا كان هناك كود إحالة
+  
+    // الكود المُستخرج من الرابط  
+const newUserName = document.getElementById('registerName').value; // جلب الاسم من حقل الإدخال
+
+   const snapshot = await firebase.database().ref('users')
+  .orderByChild('referralCode')
+  .equalTo(referralCode)
+  .once('value');
+
+if (snapshot.exists()) {
+  snapshot.forEach(childSnapshot => {
+    const referrerUID = childSnapshot.key;
+
+        // أضف اسم المستخدم الجديد في قائمة المُحالين  
+        firebase.database().ref(`users/${referrerUID}/referredUsers`).push({  
+          name: newUserName,  
+          timestamp: Date.now()
+        });  
+      });  
+    }  
+  });
+    //هنا
+  
         console.log("تم تسجيل الدخول:", result.user);
         // انتقال للصفحة الرئيسية
         window.location.href = "home.html";
@@ -279,7 +496,7 @@ alert("تم إنشاء الحساب بنجاح!");
         alert("حدث خطأ: " + error.message);
       });
   }
-</script>
+    </script>
 <script>
         //عرض واخفاء كلمة المرور
 function togglePassword(inputId, icon) {
