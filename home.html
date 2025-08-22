@@ -854,72 +854,7 @@ window.onerror = function(message, source, lineno, colno, error) {
   alert("خطأ: " + message + "\nفي: " + source + ":" + lineno);
 };
     </script>
-    <script>
 
-        //دالة السحب
-        function withdrawMoney(event) {
-            event.preventDefault(); // منع التنقل
-
-            // 1) تحقق من الاتصال:
-            if (!navigator.onLine) {
-                return alert("⚠ لا يوجد اتصال بالإنترنت، إتصل بالشبكة وأعد المحاولة.");
-            }
-
-            fetchUserBalance(() => {
-
-                const amount = document.querySelector('input[type="number"]').value.trim();
-                const paymentMethod = document.getElementById('paymentSelect').value;
-                const account = document.getElementById('accountInput').value.trim();
-
-                // التحقق أولاً من الحقول إذا كانت تحويل بنكي
-                if (paymentMethod.trim().toLowerCase().includes("bank transfers")) {
-                    const bankNameHolder = document.getElementById("bankNameHolder").value.trim();
-                    const bankIBAN = document.getElementById("bankIBAN").value.trim();
-                    const bankName = document.getElementById("bankName").value.trim();
-                    const bankSwift = document.getElementById("bankSwift").value.trim();
-
-                    if (!bankNameHolder || !bankIBAN || !bankName || !bankSwift) {
-                        alert("يرجى ملء جميع بيانات التحويل البنكي.");
-                        return;
-                    }
-
-                    // حفظ بيانات التحويل البنكي
-                    localStorage.setItem("bankNameHolder", bankNameHolder);
-                    localStorage.setItem("bankIBAN", bankIBAN);
-                    localStorage.setItem("bankName", bankName);
-                    localStorage.setItem("bankSwift", bankSwift);
-                }
-                // إذا لم يكن تحويل بنكي، تحقق من الحقول العامة فقط
-                else if (!amount || !account || paymentMethod === "اختر وسيلة الدفع") {
-                    alert("يرجى ملء مبلغ السحب، وبيانات الحساب، واختيار وسيلة الدفع.");
-                    return;
-                }
-
-                if (parseFloat(amount) > userBalance) {
-                    alert("رصيدك غير كافي لإتمام السحب.رصيدك هو:" + userBalance + " USD");
-                    return;
-                }
-
-                // التحقق من الحد الأدنى للسحب
-                if (parseFloat(amount) < 5) {
-                    alert("الحد الأدنى للسحب هو 5 USD.");
-                    return;
-                }
-
-
-                // حفظ البيانات العامة
-                localStorage.setItem("withdrawAmount", amount);
-                localStorage.setItem("withdrawAccount", account);
-                localStorage.setItem("withdrawMethod", paymentMethod);
-
-                // حفظ التاريخ والوقت
-                const now = new Date().toLocaleString();
-                localStorage.setItem("requestDate", now);
-
-                // حفظ رقم العملية
-                const transactionId = "SWP-" + Math.floor(Math.random() * 1000000000);
-                localStorage.setItem("transactionId", transactionId);
-                    </script>
 <script>
   //دالة السحب (نفس المنطق والشكل مع حمايات بسيطة)
   function withdrawMoney(event) {
