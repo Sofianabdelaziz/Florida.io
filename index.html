@@ -211,6 +211,22 @@ backdrop-filter: blur(10px);
 </script>
 <script>
 async function handleRegister() {
+
+  // دوال مساعدة معرفة في الأعلى (تصحيح ترتيب فقط — لا تغيير بالمنطق)
+  function generateReferralCode() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let code = "";
+    for (let i = 0; i < 10; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
+  function getReferralCodeFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('ref');
+  }
+
   const name = document.getElementById("registerName").value;
   const email = document.getElementById("registerEmail").value;
   const password = document.getElementById("registerPassword").value;
@@ -222,7 +238,7 @@ async function handleRegister() {
   }
 
   try {
-    // إنشاء المستخدم مرة واحدة فقط (استخدمت firebase.auth() مباشرة)
+    // إنشاء المستخدم مرة واحدة فقط (استخدمت firebase.auth() مباشره 
     const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
     const uid = userCredential.user.uid;
 
@@ -246,22 +262,6 @@ async function handleRegister() {
       referralCode: referralCode,
       referredBy: referralCodeFromURL || null
     });
-
-    // دالة توليد كود إحالة (كما في كودك)
-function generateReferralCode() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let code = "";
-  for (let i = 0; i < 10; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
-
-// استخراج كود الإحالة من الرابط (كما كان)
-function getReferralCodeFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('ref');
-  }
 
     // إذا فيه كود إحالة، حدث بيانات الشخص المحيل
     if (referralCodeFromURL) {
@@ -291,8 +291,6 @@ function getReferralCodeFromURL() {
     alert("خطأ: " + error.message);
   }
 }
-
-
 </script>
    
    
