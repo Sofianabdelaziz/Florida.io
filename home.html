@@ -631,9 +631,6 @@
             }
 
 
-            //  عرض رابط المشاركة
-document.getElementById("referralText").textContent = "https://SwapIO.com/?ref=" + myReferral;
-
             //جلب ايميل المستخدم من فايرباس
 firebase.auth().onAuthStateChanged((user) => {
                 if (user) {
@@ -664,7 +661,7 @@ if (topLetter) topLetter.textContent = firstLetter;
         } 
         
         
-    }
+    });
 
 </script>
 
