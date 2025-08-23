@@ -1123,5 +1123,48 @@ window.onerror = function(message, source, lineno, colno, error) {
         });
     });
 </script>
+
+                        <script>
+// يفترض أن Firebase تم تهيئتها مسبقًا (initializeApp)
+
+firebase.auth().onAuthStateChanged(function(user) {
+  const el = document.getElementById('referralText');
+  if (!el) {
+    console.warn('لم يتم العثور على عنصر بالمعرّف referralText');
+    return;
+  }
+
+  if (!user) {
+    // المستخدم غير مسجل دخول
+    el.textContent = 'الرجاء تسجيل الدخول لعرض رابط الإحالة';
+    return;
+  }
+
+  const uid = user.uid;
+  firebase.database().ref('users/' + uid + '/referralCode')
+    .once('value')
+    .then(function(snap) {
+      const code = snap.val();
+
+      if (code) {
+        const url = 'https://sofianabdelaziz.github.io/Florida.io/' + encodeURIComponent(code);
+
+        // عرض الرابط كنص
+        el.textContent = url;
+
+        // إذا كان العنصر رابط <a>، عيّن href أيضًا
+        if (el.tagName === 'A') {
+          el.setAttribute('href', url);
+        }
+      } else {
+        el.textContent = 'لم يتم إعداد كود الإحالة بعد.';
+      }
+    })
+    .catch(function(err) {
+      console.error('تعذّر جلب كود الإحالة:', err);
+      el.textContent = 'خطأ أثناء جلب كود الإحالة';
+    });
+});
+                        </script>
 </body>
 </html>
