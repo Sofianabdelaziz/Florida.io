@@ -830,6 +830,7 @@ window.onerror = function(message, source, lineno, colno, error) {
 };
     </script>
 
+
 <script>
   //دالة السحب (نفس المنطق والشكل مع حمايات بسيطة)
   function withdrawMoney(event) {
@@ -840,9 +841,8 @@ window.onerror = function(message, source, lineno, colno, error) {
       return alert("⚠ لا يوجد اتصال بالإنترنت، إتصل بالشبكة وأعد المحاولة.");
     }
 
-    // نادِ fetchUserBalance إن كانت موجودة، وإلا أكمل مباشرةً
+    // دالة التنفيذ الفعلية (proceed)
     var proceed = function () {
-
       const amount = (document.querySelector('input[type="number"]') || {value:""}).value.trim();
       const paymentMethod = (document.getElementById('paymentSelect') || {value:""}).value;
       const account = (document.getElementById('accountInput') || {value:""}).value.trim();
@@ -884,7 +884,7 @@ window.onerror = function(message, source, lineno, colno, error) {
       }
 
       if (parseFloat(amount) > ub) {
-        alert("رصيدك غير كافي لإتمام السحب.رصيدك هو:" + ub + " USD");
+        alert("رصيدك غير كافي لإتمام السحب. رصيدك هو: " + ub + " USD");
         return;
       }
 
@@ -907,7 +907,7 @@ window.onerror = function(message, source, lineno, colno, error) {
       const transactionId = "SWP-" + Math.floor(Math.random() * 1000000000);
       localStorage.setItem("transactionId", transactionId);
 
-      //حفظ uid المستخدم (نفس الفكرة: currentUser أو انتظار onAuthStateChanged)
+      // حفظ uid المستخدم (محاولة currentUser أولاً ثم onAuthStateChanged)
       var cu = (firebase.auth && firebase.auth().currentUser) ? firebase.auth().currentUser : null;
       if (cu) {
         localStorage.setItem("userUID", cu.uid);
@@ -919,45 +919,74 @@ window.onerror = function(message, source, lineno, colno, error) {
         });
       }
 
-      // خصم مبلغ السحب من رصيد المستخدم في قاعدة البيانات (نفس منطقك)
+      // === خصم مبلغ السحب من رصيد المستخدم وتعيين withdraw=2 ===
+      (async function updateBalanceAndMark() {
+        try {
+          // حاول الحصول على المستخدم المسجل الآن
+          let user = firebase.auth().currentUser;
+          if (!user) {
+            user = await new Promise(resolve => {
+              const off = firebase.auth().onAuthStateChanged(u => { off(); resolve(u); });
+            });
+          }
+          if (!user) throw new Error("لم يتم تسجيل الدخول.");
 
-firebase.auth().onAuthStateChanged(function(user) {
-// لو ما جاء user من الحدث، جرّب currentUser (لنغيّر المنطق؟ لا، فقط حماية)
-user = user || (firebase.auth ? firebase.auth().currentUser : null);
-if (!user) return;
+          const uid = user.uid;
+          const amountToDeduct = parseFloat(amount);
 
-const uid = user.uid;  
-    const amountToDeduct = parseFloat(amount);  
+          // جلب الرصيد الحالي
+          const snap = await firebase.database().ref("users/" + uid + "/balance").once("value");
+          const currentBalance = parseFloat(snap.val()) || 0;
 
-    firebase.database().ref("users/" + uid + "/balance").once("value")  
-      .then(function(snapshot) {  
-        const currentBalance = parseFloat(snapshot.val()) || 0;  
-        var newBalance = currentBalance - amountToDeduct;  
-        if (newBalance < 0) newBalance = 0;  
+          // تحقق من كفاية الرصيد (حماية إضافية على مستوى السيرفر/DB مهمة أيضاً)
+          if (amountToDeduct > currentBalance) {
+            alert("رصيدك غير كافي. رصيدك: " + currentBalance + " USD");
+            return;
+          }
 
-        return firebase.database().ref("users/" + uid).update({ balance: newBalance });  
-      })  
-      .catch(function(err){ console.error(err); });  
-  });
+          const newBalance = currentBalance - amountToDeduct;
 
-    
+          // حدّث الرصيد وقيمة withdraw = 2 وانتظر الانتهاء
+          await firebase.database().ref("users/" + uid).update({
+            balance: newBalance,
+            withdraw: 2
+          });
 
-        if (typeof fetchUserBalance === "function") {
-      try { fetchUserBalance(proceed); } catch(e){ console.warn(e); proceed(); }
+        } catch (err) {
+          console.error("حدث خطأ أثناء تحديث الرصيد:", err);
+          alert("حدث خطأ أثناء معالجة السحب: " + (err.message || err));
+          return;
+        }
+      })();
+
+      // إن كانت هناك دالة fetchUserBalance معرفة: حدّث الواجهة
+      if (typeof fetchUserBalance === "function") {
+        try { fetchUserBalance(); } catch(e){ console.warn(e); }
+      }
+
+      // إشعار النجاح ثم الانتقال
+      alert("✅ تم إرسال طلب السحب بنجاح!");
+      window.location.href = "withdraw.html?refresh=" + new Date().getTime();
+    }; // نهاية proceed
+
+    // **هنا: نريد جلب الرصيد قبل تنفيذ proceed** (إن كانت الدالة موجودة)
+    if (typeof fetchUserBalance === "function") {
+      try {
+        // اجعل fetchUserBalance ينادي proceed بعد الانتهاء (كما كان مُصمماً)
+        fetchUserBalance(proceed);
+      } catch (e) {
+        console.warn(e);
+        // لو فشل، ننفّذ proceed مباشرة
+        proceed();
+      }
     } else {
-      // لو الدالة غير موجودة في الاستضافة، لا تعطّل التنفيذ
+      // لو الدالة غير موجودة، ننفّذ proceed الآن
       proceed();
     }
 
-      // إشعار النجاح ثم الانتقال (كما هو دون تغيير مكانه)
-      alert("✅ تم إرسال طلب السحب بنجاح!");
-      window.location.href = "withdraw.html?refresh=" + new Date().getTime();
-    };
-
-    
-  }
+  } // نهاية withdrawMoney
 </script>
-
+                        
                         
     <!--جلب الرصيد-->
 <script>
