@@ -962,42 +962,51 @@ window.onerror = function(message, source, lineno, colno, error) {
           .catch(function(err){ console.error(err); });
       });
 
-      // إشعار النجاح ثم الانتقال (كما هو دون تغيير مكانه)
-      alert("✅ تم إرسال طلب السحب بنجاح!");
-      window.location.href = "withdraw.html?refresh=" + new Date().getTime();
-    };
-
-    if (typeof fetchUserBalance === "function") {
+        if (typeof fetchUserBalance === "function") {
       try { fetchUserBalance(proceed); } catch(e){ console.warn(e); proceed(); }
     } else {
       // لو الدالة غير موجودة في الاستضافة، لا تعطّل التنفيذ
       proceed();
     }
+
+      // إشعار النجاح ثم الانتقال (كما هو دون تغيير مكانه)
+      alert("✅ تم إرسال طلب السحب بنجاح!");
+      window.location.href = "withdraw.html?refresh=" + new Date().getTime();
+    };
+
+    
   }
 </script>
     <script>
-        const statusElement = document.getElementById("lastWithdrawStatus");
-        statusElement.style.display = "none"; // إخفاء العنصر في البداية
+    const statusElement = document.getElementById("lastWithdrawStatus");
+    statusElement.style.display = "none"; // مخفي بالبداية
 
-        firebase.auth().onAuthStateChanged((user) => {
-            if (!user) return;
+    firebase.auth().onAuthStateChanged((user) => {
+        if (!user) return;
 
-            const uid = user.uid;
+        const uid = user.uid;
 
-            firebase.database().ref(`withdraw/${uid}/last/status`)
-            .once("value")
-            .then((snapshot) => {
-                const status = snapshot.val();
+        firebase.database().ref(`users/${uid}/withdraw`)
+        .once("value")
+        .then((snapshot) => {
+            const status = snapshot.val();
 
-                if (status === 1) {
-                    statusElement.innerHTML = 'آخر عملية سحب <span style="color:green;">تم السحب</span>';
-                    statusElement.style.display = "block"; // إظهار العنصر فقط إذا كانت 1
-                }
-            })
-            .catch(() => {
-                // يمكن تجاهل الخطأ أو إضافته لو أردت
-            });
+            if (status === 1) {
+                statusElement.innerHTML = 'آخر عملية سحب <span style="color:green;">تم السحب</span>';
+                statusElement.style.display = "block"; 
+            } else if (status === 2) {
+                statusElement.innerHTML = 'آخر عملية سحب <span style="color:orange;">قيد المراجعة</span>';
+                statusElement.style.display = "block"; 
+            } else {
+                // إذا كانت 0 أو null يبقى مخفي
+                statusElement.style.display = "none";
+            }
+        })
+        .catch(() => {
+            // خطأ بجلب البيانات
+            statusElement.style.display = "none";
         });
+    });
     </script>
     <script>
 
