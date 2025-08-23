@@ -621,50 +621,39 @@
             console.log("Email:", userEmail);
             console.log("First letter:", firstLetter);
 
-            //جلب كود الإحالة من القاعدة
-            function getReferralCode(uid) {
-                firebase.database().ref('users/' + uid).once('value').then((snapshot) => {
-                    const data = snapshot.val(); if (data && data.referralCode) {
-                        let myReferralCode = data.referralCode; let myReferral = myReferralCode;
-                    }
-                });
-            }
+    
 
 
             //  عرض رابط المشاركة
 document.getElementById("referralText").textContent = "https://SwapIO.com/?ref=" + myReferral;
 
             //جلب ايميل المستخدم من فايرباس
+
 firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-const userEmail = user.email;
-const firstLetter = userEmail.charAt(0).toUpperCase();
+    if (user) {
+        const userEmail = user.email || "";
+        const firstLetter = userEmail.charAt(0).toUpperCase();
 
-                    // تعيين الإيميل والحرف الأول في العناصر
-const topEmail = document.getElementById("top-email");
-const topLetter = document.getElementById("top-letter");
-const userEmailElement = document.getElementById("user-email");
-const emailLetterElement = document.getElementById("email-letter");
+        // تعيين الإيميل والحرف الأول في العناصر
+        const topEmail = document.getElementById("top-email");
+        const topLetter = document.getElementById("top-letter");
+        const userEmailElement = document.getElementById("user-email");
+        const emailLetterElement = document.getElementById("email-letter");
 
-if (topEmail) topEmail.textContent = userEmail;
-if (topLetter) topLetter.textContent = firstLetter;
-                    if (userEmailElement) userEmailElement.textContent = userEmail;
-                    if (emailLetterElement) emailLetterElement.textContent = firstLetter;
-                }
-            });
+        if (topEmail) topEmail.textContent = userEmail;
+        if (topLetter) topLetter.textContent = firstLetter;
+        if (userEmailElement) userEmailElement.textContent = userEmail;
+        if (emailLetterElement) emailLetterElement.textContent = firstLetter;
 
-            
-            // كود حفض بريد المستخدم الإلكتروني
-            const user = firebase.auth().currentUser;
-            if (user) {
-                const email = user.email;
-                localStorage.setItem("withdrawEmail", email);
-            }
+        // خزن البريد في localStorage
+        localStorage.setItem("withdrawEmail", userEmail);
+    } else {
+        console.log("⚠️ لا يوجد مستخدم مسجل دخول حالياً");
+    }
+});
 
-        } 
-        
-        
-    });
+    }
+});
 
 </script>
 
