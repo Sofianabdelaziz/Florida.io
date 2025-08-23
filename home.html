@@ -615,45 +615,33 @@
 
     // التأكد من أن المستخدم مسجل الدخول
     firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-            const userEmail = user.email;
-            const firstLetter = userEmail.charAt(0).toUpperCase();
-            console.log("Email:", userEmail);
-            console.log("First letter:", firstLetter);
+   firebase.auth().onAuthStateChanged(function(user) {
+  if (!user) {
+    console.log("⚠️ لا يوجد مستخدم مسجل دخول حالياً");
+    return;
+  }
 
-    
+  // وصول المستخدم موجود
+  const userEmail = user.email || "";
+  const firstLetter = userEmail.charAt(0).toUpperCase();
 
+  console.log("Email:", userEmail);
+  console.log("First letter:", firstLetter);
 
-            //  عرض رابط المشاركة
-document.getElementById("referralText").textContent = "https://SwapIO.com/?ref=" + myReferral;
+  // تعيين الإيميل والحرف الأول في العناصر (مع حماية وجود العناصر)
+  const topEmail = document.getElementById("top-email");
+  const topLetter = document.getElementById("top-letter");
+  const userEmailElement = document.getElementById("user-email");
+  const emailLetterElement = document.getElementById("email-letter");
 
-            //جلب ايميل المستخدم من فايرباس
+  if (topEmail) topEmail.textContent = userEmail;
+  if (topLetter) topLetter.textContent = firstLetter;
+  if (userEmailElement) userEmailElement.textContent = userEmail;
+  if (emailLetterElement) emailLetterElement.textContent = firstLetter;
 
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        const userEmail = user.email || "";
-        const firstLetter = userEmail.charAt(0).toUpperCase();
-
-        // تعيين الإيميل والحرف الأول في العناصر
-        const topEmail = document.getElementById("top-email");
-        const topLetter = document.getElementById("top-letter");
-        const userEmailElement = document.getElementById("user-email");
-        const emailLetterElement = document.getElementById("email-letter");
-
-        if (topEmail) topEmail.textContent = userEmail;
-        if (topLetter) topLetter.textContent = firstLetter;
-        if (userEmailElement) userEmailElement.textContent = userEmail;
-        if (emailLetterElement) emailLetterElement.textContent = firstLetter;
-
-        // خزن البريد في localStorage
-        localStorage.setItem("withdrawEmail", userEmail);
-    } else {
-        console.log("⚠️ لا يوجد مستخدم مسجل دخول حالياً");
-    }
-});
-
-    }
-});
+  // خزن البريد في localStorage
+  localStorage.setItem("withdrawEmail", userEmail);
+}); 
 
 </script>
 
