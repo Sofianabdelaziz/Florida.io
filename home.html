@@ -824,29 +824,6 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
             });
         }
     </script>
-    <!--جلب الرصيد-->
-<script>
-  // compat version: جلب رصيد المستخدم وتخزينه ثم تنفيذ callback
-  window.userBalance = null;
-
-  window.fetchUserBalance = function(callback) {
-    // نتأكد من المصادقة
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (!user) {
-        if (typeof callback === "function") callback();
-        return;
-      }
-      firebase.database().ref('users/' + user.uid + '/balance').once('value')
-        .then(function(snap) {
-          window.userBalance = snap.exists() ? snap.val() : null;
-        })
-        .catch(function(e){ console.error(e); })
-        .finally(function() {
-          if (typeof callback === "function") callback();
-        });
-    });
-  };
-</script>
     <script>
 window.onerror = function(message, source, lineno, colno, error) {
   alert("خطأ: " + message + "\nفي: " + source + ":" + lineno);
@@ -943,27 +920,27 @@ window.onerror = function(message, source, lineno, colno, error) {
       }
 
       // خصم مبلغ السحب من رصيد المستخدم في قاعدة البيانات (نفس منطقك)
-      firebase.auth().onAuthStateChanged(function(user) {
-  // لو ما جاء user من الحدث، جرّب currentUser
-  user = user || (firebase.auth ? firebase.auth().currentUser : null);
-  if (!user) return;
 
-  const uid = user.uid;
-  const amountToDeduct = parseFloat(amount);
+firebase.auth().onAuthStateChanged(function(user) {
+// لو ما جاء user من الحدث، جرّب currentUser (لنغيّر المنطق؟ لا، فقط حماية)
+user = user || (firebase.auth ? firebase.auth().currentUser : null);
+if (!user) return;
 
-  firebase.database().ref("users/" + uid + "/balance").once("value")
-    .then(function(snapshot) {
-      const currentBalance = parseFloat(snapshot.val()) || 0;
-      var newBalance = currentBalance - amountToDeduct;
-      if (newBalance < 0) newBalance = 0;
+const uid = user.uid;  
+    const amountToDeduct = parseFloat(amount);  
 
-      return firebase.database().ref("users/" + uid).update({ 
-        balance: newBalance,
-        withdraw: 2   // ✅ هنا أضفنا قيمة السحب
-      });
-    })
-    .catch(function(err){ console.error(err); });
-});
+    firebase.database().ref("users/" + uid + "/balance").once("value")  
+      .then(function(snapshot) {  
+        const currentBalance = parseFloat(snapshot.val()) || 0;  
+        var newBalance = currentBalance - amountToDeduct;  
+        if (newBalance < 0) newBalance = 0;  
+
+        return firebase.database().ref("users/" + uid).update({ balance: newBalance });  
+      })  
+      .catch(function(err){ console.error(err); });  
+  });
+
+    
 
         if (typeof fetchUserBalance === "function") {
       try { fetchUserBalance(proceed); } catch(e){ console.warn(e); proceed(); }
@@ -979,6 +956,31 @@ window.onerror = function(message, source, lineno, colno, error) {
 
     
   }
+</script>
+
+                        
+    <!--جلب الرصيد-->
+<script>
+  // compat version: جلب رصيد المستخدم وتخزينه ثم تنفيذ callback
+  window.userBalance = null;
+
+  window.fetchUserBalance = function(callback) {
+    // نتأكد من المصادقة
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        if (typeof callback === "function") callback();
+        return;
+      }
+      firebase.database().ref('users/' + user.uid + '/balance').once('value')
+        .then(function(snap) {
+          window.userBalance = snap.exists() ? snap.val() : null;
+        })
+        .catch(function(e){ console.error(e); })
+        .finally(function() {
+          if (typeof callback === "function") callback();
+        });
+    });
+  };
 </script>
     <script>
     const statusElement = document.getElementById("lastWithdrawStatus");
