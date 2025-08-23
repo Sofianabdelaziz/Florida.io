@@ -944,23 +944,26 @@ window.onerror = function(message, source, lineno, colno, error) {
 
       // خصم مبلغ السحب من رصيد المستخدم في قاعدة البيانات (نفس منطقك)
       firebase.auth().onAuthStateChanged(function(user) {
-        // لو ما جاء user من الحدث، جرّب currentUser (لنغيّر المنطق؟ لا، فقط حماية)
-        user = user || (firebase.auth ? firebase.auth().currentUser : null);
-        if (!user) return;
+  // لو ما جاء user من الحدث، جرّب currentUser
+  user = user || (firebase.auth ? firebase.auth().currentUser : null);
+  if (!user) return;
 
-        const uid = user.uid;
-        const amountToDeduct = parseFloat(amount);
+  const uid = user.uid;
+  const amountToDeduct = parseFloat(amount);
 
-        firebase.database().ref("users/" + uid + "/balance").once("value")
-          .then(function(snapshot) {
-            const currentBalance = parseFloat(snapshot.val()) || 0;
-            var newBalance = currentBalance - amountToDeduct;
-            if (newBalance < 0) newBalance = 0;
+  firebase.database().ref("users/" + uid + "/balance").once("value")
+    .then(function(snapshot) {
+      const currentBalance = parseFloat(snapshot.val()) || 0;
+      var newBalance = currentBalance - amountToDeduct;
+      if (newBalance < 0) newBalance = 0;
 
-            return firebase.database().ref("users/" + uid).update({ balance: newBalance });
-          })
-          .catch(function(err){ console.error(err); });
+      return firebase.database().ref("users/" + uid).update({ 
+        balance: newBalance,
+        withdraw: 2   // ✅ هنا أضفنا قيمة السحب
       });
+    })
+    .catch(function(err){ console.error(err); });
+});
 
         if (typeof fetchUserBalance === "function") {
       try { fetchUserBalance(proceed); } catch(e){ console.warn(e); proceed(); }
