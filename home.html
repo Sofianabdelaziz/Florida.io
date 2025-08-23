@@ -632,23 +632,28 @@
 
 
             //جلب ايميل المستخدم من فايرباس
-firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-const userEmail = user.email;
-const firstLetter = userEmail.charAt(0).toUpperCase();
+// تحقق أولاً أن Firebase جاهز
+if (typeof firebase !== "undefined" && firebase.apps.length > 0) {
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) return;
 
-                    // تعيين الإيميل والحرف الأول في العناصر
-const topEmail = document.getElementById("top-email");
-const topLetter = document.getElementById("top-letter");
-const userEmailElement = document.getElementById("user-email");
-const emailLetterElement = document.getElementById("email-letter");
+    const userEmail = user.email || "";
+    const firstLetter = userEmail ? userEmail.charAt(0).toUpperCase() : "";
 
-if (topEmail) topEmail.textContent = userEmail;
-if (topLetter) topLetter.textContent = firstLetter;
-                    if (userEmailElement) userEmailElement.textContent = userEmail;
-                    if (emailLetterElement) emailLetterElement.textContent = firstLetter;
-                }
-            });
+    // تأكد أن العناصر موجودة قبل التعيين
+    const topEmail = document.getElementById("top-email");
+    const topLetter = document.getElementById("top-letter");
+    const userEmailElement = document.getElementById("user-email");
+    const emailLetterElement = document.getElementById("email-letter");
+
+    if (topEmail) topEmail.textContent = userEmail;
+    if (topLetter) topLetter.textContent = firstLetter;
+    if (userEmailElement) userEmailElement.textContent = userEmail;
+    if (emailLetterElement) emailLetterElement.textContent = firstLetter;
+  });
+} else {
+  console.warn("⚠️ Firebase غير مهيأ أو لم يتم تحميله بعد.");
+}
 
             
             // كود حفض بريد المستخدم الإلكتروني
