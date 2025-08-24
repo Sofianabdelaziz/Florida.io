@@ -337,9 +337,11 @@
     </div>
 
     <div class="content">
-       <div id="lottie-box" style="width: 200px; height: 200px;">
-  <!-- لاحظ: لا تحدد loop هنا -->
-  <dotlottie-wc id="lottie-player" style="width:100%; height:100%;"></dotlottie-wc>
+       <div id="lottie-box" style="width:200px; height:200px;">
+  <dotlottie-wc id="lottie-player"
+    style="width:100%; height:100%;"
+    autoplay>
+  </dotlottie-wc>
 </div>
 
 <script>
@@ -352,56 +354,27 @@
   const player = document.getElementById("lottie-player");
   let index = 0;
 
-  // تشغيل المصدر الحالي بعد تحميله (محاولة آمنة)
-  function playWhenReady() {
-    // يوجد دوال play على العنصر في بعض الإصدارات
-    if (typeof player.play === "function") {
-      try { player.play(); return; } catch(e) {}
-    }
-    // حدث تحميل محتمل من الويب كومبوننت
-    const onLoaded = () => {
-      if (typeof player.play === "function") {
-        try { player.play(); } catch(e) {}
-      }
-      player.removeEventListener("load", onLoaded);
-      player.removeEventListener("loaded", onLoaded);
-    };
-    player.addEventListener("load", onLoaded, { once: true });
-    player.addEventListener("loaded", onLoaded, { once: true });
-
-    // fallback بسيط: جرب التشغيل بعد 200ms إن لم يحدث شيء
-    setTimeout(() => {
-      if (typeof player.play === "function") {
-        try { player.play(); } catch(e) {}
-      }
-    }, 200);
-  }
-
-  // ضع src واطلب التشغيل عندما يصبح جاهز
-  function setAnimationSrc(src) {
-    // تأكّد من عدم وجود loop لكي يصدر حدث الانتهاء
-    if (player.hasAttribute("loop")) player.removeAttribute("loop");
-
+  // تعيين مصدر وتشغيله
+  function setAnimation(src) {
     player.setAttribute("src", src);
-    playWhenReady();
   }
 
   // تغيير للأنيميشن التالي
   function nextAnimation() {
-    setAnimationSrc(animations[index]);
     index = (index + 1) % animations.length;
+    setAnimation(animations[index]);
   }
 
-  // مستمع لانتهاء الأنيميشن الحالي
-  // (الحدث "complete" مدعوم عادة؛ نضيف بدائل إن وجدت)
-  player.addEventListener("complete", nextAnimation);
-  player.addEventListener("finished", nextAnimation); // بعض الإصدارات قد تستعمل اسم آخر
-  // كاحتياط: بعض الإصدارات تطلق حدث "lottie-finished" أو "lottieComplete" — يمكن إضافة لو لزم
-  // player.addEventListener("lottie-finished", nextAnimation);
-  // player.addEventListener("lottieComplete", nextAnimation);
+  // راقب الوقت (timeupdate يعطي نسبة التشغيل)
+  player.addEventListener("timeupdate", (e) => {
+    const progress = e.detail?.progress; // نسبة مئوية 0 → 1
+    if (progress >= 1) {
+      nextAnimation();
+    }
+  });
 
-  // ابدأ بالسابق (أول أنيميشن)
-  nextAnimation();
+  // ابدأ بالأول
+  setAnimation(animations[index]);
 </script>
 
         <div id="box1" class="box" style="width: 70%; margin: 5px auto; padding: 25px; background-color: rgba(255, 255, 255, 0.79);margin-left:15%; border-radius: 20px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); font-family: 'Segoe UI', sans-serif;margin-bottom:80%;">
