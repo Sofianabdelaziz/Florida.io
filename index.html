@@ -376,6 +376,9 @@ async function handleLogin() {
             }
           }
         }
+        
+         //حفض تسجيل الدخول 
+    localStorage.setItem("isLoggedIn", "true");
 
         alert("تم تسجيل الدخول بجوجل بنجاح!");
         window.location.href = "home.html";
