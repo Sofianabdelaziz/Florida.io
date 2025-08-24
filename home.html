@@ -683,7 +683,7 @@ firebase.auth().onAuthStateChanged(user => {
 });
 </script>
 <script>
-
+   //كود تسجيل الخروج
             function showLogoutBox() {
                 document.getElementById("logoutBox").style.display = "flex";
             }
@@ -695,6 +695,8 @@ firebase.auth().onAuthStateChanged(user => {
                 // تسجيل الخروج من Firebase
                 firebase.auth().signOut().then(() => {
                     // بعد تسجيل الخروج بنجاح
+                
+localStorage.setItem("isLoggedIn", "false");  
                     window.location.href = "index.html"; // توجيه المستخدم لصفحة الدخول
                 }).catch((error) => {
                     console.error("فشل تسجيل الخروج من Firebase:", error);
