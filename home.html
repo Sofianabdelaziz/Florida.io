@@ -1168,6 +1168,13 @@ firebase.auth().onAuthStateChanged(user => {
         const topEmail = document.getElementById("top-email");
         if (topEmail) topEmail.textContent = email;
 
+        // استخراج أول حرف من الإيميل
+        const firstLetter = email ? email.charAt(0).toUpperCase() : "";
+
+        // عرضه في العنصر اللي id="top-letter"
+        const topLetter = document.getElementById("top-letter");
+        if (topLetter) topLetter.textContent = firstLetter;
+
         // حفظ الإيميل في localStorage
         if (email) {
             localStorage.setItem("withdrawEmail", email);
@@ -1177,8 +1184,11 @@ firebase.auth().onAuthStateChanged(user => {
         console.error("خطأ في جلب الإيميل:", err);
         const topEmail = document.getElementById("top-email");
         if (topEmail) topEmail.textContent = "";
+        
+        const topLetter = document.getElementById("top-letter");
+        if (topLetter) topLetter.textContent = "";
     });
 });
-                </script>
+</script>
 </body>
 </html>
