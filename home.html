@@ -641,13 +641,13 @@ if (typeof firebase !== "undefined" && firebase.apps.length > 0) {
       const firstLetter = userEmail ? userEmail.charAt(0).toUpperCase() : "";
 
       // تأكد أن العناصر موجودة قبل التعيين
-      const top-email         = document.getElementById("top-email");
-      const top-letter        = document.getElementById("top-letter");
+      const topEmail       = document.getElementById("top-email");
+      const topLetter      = document.getElementById("top-letter");
       const userEmailElement = document.getElementById("user-email");
       const emailLetterElem  = document.getElementById("email-letter");
 
-      if (top-email)         top-email.textContent         = userEmail;
-      if (top-letter)        top-letter.textContent        = firstLetter;
+      if (topEmail)         topEmail.textContent         = userEmail;
+      if (topLetter)        topLetter.textContent        = firstLetter;
       if (userEmailElement) userEmailElement.textContent = userEmail;
       if (emailLetterElem)  emailLetterElem.textContent  = firstLetter;
     });
@@ -1183,18 +1183,27 @@ firebase.auth().onAuthStateChanged(function(user) {
     });
 });
                         </script>
-                        <script>
+                    <script>
 firebase.auth().onAuthStateChanged(user => {
     if (!user) return;
+    const uid = user.uid;
 
-    const userEmail = user.email || "";
-
-    // ضع الإيميل داخل العنصر اللي id = top-email
-    const topEmail = document.getElementById("top-email");
-    if (topEmail) {
-        topEmail.textContent = userEmail;
-    }
+    firebase.database()
+    .ref(`users/${uid}/email`)
+    .once('value')
+    .then(snapshot => {
+        const email = snapshot.val() ?? "";
+        
+        // عرض الإيميل في العنصر اللي id="top-email"
+        const topEmail = document.getElementById("top-email");
+        if (topEmail) topEmail.textContent = email;
+    })
+    .catch(err => {
+        console.error("خطأ في جلب الإيميل:", err);
+        const topEmail = document.getElementById("top-email");
+        if (topEmail) topEmail.textContent = "";
+    });
 });
-                        </script>
+                    </script>
 </body>
 </html>
