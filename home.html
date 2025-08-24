@@ -1012,10 +1012,10 @@ window.onerror = function(message, source, lineno, colno, error) {
             const status = snapshot.val();
 
             if (status === 1) {
-                statusElement.innerHTML = 'آخر عملية سحب <span style="color:green;">تم السحب</span>';
+                statusElement.innerHTML = 'آخر عملية سحب <span style="color:green;"><a href="#">تم السحب</a></span>';
                 statusElement.style.display = "block"; 
             } else if (status === 2) {
-                statusElement.innerHTML = 'آخر عملية سحب <span style="color:orange;">قيد المراجعة</span>';
+                statusElement.innerHTML = 'آخر عملية سحب <span style="color:orange;"><a href="#">قيد المراجعة</a></span>';
                 statusElement.style.display = "block"; 
             } else {
                 // إذا كانت 0 أو null يبقى مخفي
