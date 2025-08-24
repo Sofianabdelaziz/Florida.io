@@ -187,6 +187,15 @@ backdrop-filter: blur(10px);
     }
   </style>
 
+<!-- JavaScript-->
+
+  <script>
+      //اذا كان مسجل الدخول يفتح مباشرة
+if (localStorage.getItem("isLoggedIn") === "true") {
+    window.location.href = "home.html"; // يفتح صفحة الهوم
+}
+  </script>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
@@ -283,6 +292,8 @@ async function handleRegister() {
         if (pushes.length) await Promise.all(pushes);
       }
     }
+         //حفض تسجيل الدخول 
+    localStorage.setItem("isLoggedIn", "true");
 
     alert("تم إنشاء الحساب بنجاح!");
     window.location.href = "home.html";
