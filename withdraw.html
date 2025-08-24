@@ -168,8 +168,8 @@
   const now     =localStorage.getItem("requestDate");
   const transactionId     =localStorage.getItem("transactionId");
   // عرض القيم في العناصر
-  document.getElementById("amountText").textContent = amount || "غير مستخدم في التحويل البنكي";
-  document.getElementById("accountText").textContent = account || "لاتوجد بيانات";
+  document.getElementById("amountText").textContent = amount || "لاتوجد بيانات ";
+  document.getElementById("accountText").textContent = account || "غير مستخدم في التحويل البنكي";
   document.getElementById("methodText").textContent = method || "لاتوجد بيانات";
   document.getElementById("withdrawEmail").textContent = email ||  "لاتوجد بيانات"
   document.getElementById("requestDate").textContent = now || "لاتوجد بيانات";
