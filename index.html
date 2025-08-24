@@ -340,6 +340,8 @@ async function handleLogin() {
         if (snapshot.exists()) {
           // ✅ المستخدم عنده بيانات من قبل
           console.log("المستخدم موجود مسبقاً:", snapshot.val());
+         alert("تم تسجيل الدخول بجوجل بنجاح!");
+        window.location.href = "home.html"; 
         } else {
           // ✅ مستخدم جديد → أنشئ بياناته
           const referralCode = generateReferralCode();
