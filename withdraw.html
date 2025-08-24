@@ -63,7 +63,7 @@
 
   <div class="confirmation-box">
     <h2 style="text-align: center;font-size:60px;"> تم إرسال طلب السحب</h2>
-<p style="text-align: center;font-size:30px;">سيتم تحويل المبلغ بعد مراجعة الطلب من خادم  SwapIO</p>
+<p id="1" style="text-align: center;font-size:30px;">سيتم تحويل المبلغ بعد مراجعة الطلب من خادم  SwapIO</p>
 
 
 <div style="margin-top: 5%;font-size:16px;">
@@ -74,7 +74,7 @@
   <!-- ✅ الحالة العامة -->
   <p style="font-size: 22px; font-weight: bold; margin: 0;">
   <span style="color: black;">الحالة:</span>
-  <span style="color: #ffc107;">قيد المراجعة</span>
+  <span id="2" style="color: #ffc107;">قيد المراجعة</span>
   <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
 </p>
   <p><strong>المبلغ:</strong> <span id="amountText"></span> USD</p>
@@ -99,7 +99,7 @@
   <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
    
   </div>
-  <p style="text-align: center;margin-top:10%;font-size:24px;font-weight:700;">تمت جدولة عملية السحب قد تستغرق العملية حوالى 1إلى2 ساعة وسيتم إرسال إشعار إليك عند الإنتهاء </p>
+  <p id="3" style="text-align: center;margin-top:10%;font-size:24px;font-weight:700;">تمت جدولة عملية السحب قد تستغرق العملية حوالى 1إلى2 ساعة وسيتم إرسال إشعار إليك عند الإنتهاء </p>
   
 
 
@@ -163,7 +163,37 @@ document.getElementById("transactionId").textContent = transactionId || "لات�
 };
   
 </script>
+<script>
+     // اذا تم السحب
+firebase.auth().onAuthStateChanged(user => {
+    if (!user) return;
+    const uid = user.uid;
 
+    firebase.database()
+    .ref(`users/${uid}/withdraw`)
+    .once('value')
+    .then(snapshot => {
+        const withdrawValue = snapshot.val();
+
+        if (withdrawValue === 1) {
+            // ✅ تغيير النصوص
+            const el1 = document.getElementById("1");
+            const el2 = document.getElementById("2");
+            const el3 = document.getElementById("3");
+
+            if (el1) el1.textContent = "تم ارسال مبلغ السحب من خادم SwapIO بنجاح";
+            if (el2) {
+                el2.textContent = "تم السحب";
+                el2.style.color = "green";
+            }
+            if (el3) el3.style.display = "none";
+        }
+    })
+    .catch(err => {
+        console.error("خطأ في جلب قيمة withdraw:", err);
+    });
+});
+</script>
 
 
 
