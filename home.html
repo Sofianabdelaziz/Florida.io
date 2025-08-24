@@ -1152,7 +1152,8 @@ firebase.auth().onAuthStateChanged(function(user) {
     });
 });
                         </script>
-                    <script>
+                <script>
+                    //جلب الإيميل وعرضه في الأعلى 
 firebase.auth().onAuthStateChanged(user => {
     if (!user) return;
     const uid = user.uid;
@@ -1166,6 +1167,11 @@ firebase.auth().onAuthStateChanged(user => {
         // عرض الإيميل في العنصر اللي id="top-email"
         const topEmail = document.getElementById("top-email");
         if (topEmail) topEmail.textContent = email;
+
+        // حفظ الإيميل في localStorage
+        if (email) {
+            localStorage.setItem("withdrawEmail", email);
+        }
     })
     .catch(err => {
         console.error("خطأ في جلب الإيميل:", err);
@@ -1173,6 +1179,6 @@ firebase.auth().onAuthStateChanged(user => {
         if (topEmail) topEmail.textContent = "";
     });
 });
-                    </script>
+                </script>
 </body>
 </html>
