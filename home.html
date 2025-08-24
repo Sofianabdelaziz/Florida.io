@@ -638,7 +638,44 @@
     });
 
 </script>
+<script>
+                    //جلب الإيميل وعرضه في الأعلى 
+firebase.auth().onAuthStateChanged(user => {
+    if (!user) return;
+    const uid = user.uid;
 
+    firebase.database()
+    .ref(`users/${uid}/email`)
+    .once('value')
+    .then(snapshot => {
+        const email = snapshot.val() ?? "";
+        
+        // عرض الإيميل في العنصر اللي id="top-email"
+        const topEmail = document.getElementById("top-email");
+        if (topEmail) topEmail.textContent = email;
+
+        // استخراج أول حرف من الإيميل
+        const firstLetter = email ? email.charAt(0).toUpperCase() : "";
+
+        // عرضه في العنصر اللي id="top-letter"
+        const topLetter = document.getElementById("top-letter");
+        if (topLetter) topLetter.textContent = firstLetter;
+
+        // حفظ الإيميل في localStorage
+        if (email) {
+            localStorage.setItem("withdrawEmail", email);
+        }
+    })
+    .catch(err => {
+        console.error("خطأ في جلب الإيميل:", err);
+        const topEmail = document.getElementById("top-email");
+        if (topEmail) topEmail.textContent = "";
+        
+        const topLetter = document.getElementById("top-letter");
+        if (topLetter) topLetter.textContent = "";
+    });
+});
+</script>
 <script>
 
             function showLogoutBox() {
@@ -1152,43 +1189,6 @@ firebase.auth().onAuthStateChanged(function(user) {
     });
 });
                         </script>
-                <script>
-                    //جلب الإيميل وعرضه في الأعلى 
-firebase.auth().onAuthStateChanged(user => {
-    if (!user) return;
-    const uid = user.uid;
-
-    firebase.database()
-    .ref(`users/${uid}/email`)
-    .once('value')
-    .then(snapshot => {
-        const email = snapshot.val() ?? "";
-        
-        // عرض الإيميل في العنصر اللي id="top-email"
-        const topEmail = document.getElementById("top-email");
-        if (topEmail) topEmail.textContent = email;
-
-        // استخراج أول حرف من الإيميل
-        const firstLetter = email ? email.charAt(0).toUpperCase() : "";
-
-        // عرضه في العنصر اللي id="top-letter"
-        const topLetter = document.getElementById("top-letter");
-        if (topLetter) topLetter.textContent = firstLetter;
-
-        // حفظ الإيميل في localStorage
-        if (email) {
-            localStorage.setItem("withdrawEmail", email);
-        }
-    })
-    .catch(err => {
-        console.error("خطأ في جلب الإيميل:", err);
-        const topEmail = document.getElementById("top-email");
-        if (topEmail) topEmail.textContent = "";
-        
-        const topLetter = document.getElementById("top-letter");
-        if (topLetter) topLetter.textContent = "";
-    });
-});
-</script>
+                
 </body>
 </html>
