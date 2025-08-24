@@ -74,7 +74,7 @@
   
    
   <!-- ✅ الحالة العامة -->
-  <p style="font-size: 24px; font-weight: bold; margin: 0;">
+  <p style="font-size: 25px; font-weight: bold; margin: 0;">
   <span style="color: black;">الحالة:</span>
   <span id="2" style="color: #ffc107;">قيد المراجعة</span>
   <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
@@ -180,10 +180,14 @@ document.getElementById("transactionId").textContent = transactionId || "لات�
   // إذا كانت طريقة الدفع تحويل بنكي، أضف تفاصيل البنك
   if (method && method.toLowerCase().includes("bank transfers")) {
     document.getElementById("bankDetails").innerHTML = `
-      <p><strong>اسم صاحب الحساب:</strong> ${bankNameHolder}</p>
+      <p><strong>Bank account name:</strong> ${bankNameHolder}</p>
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
       <p><strong>IBAN:</strong> ${bankIBAN}</p>
-      <p><strong>اسم البنك:</strong> ${bankName}</p>
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
+      <p><strong>Bank name:</strong> ${bankName}</p>
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
       <p><strong>SWIFT:</strong> ${bankSwift}</p>
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2);background-color:black;">
     `;
   }
 };
