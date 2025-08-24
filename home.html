@@ -338,10 +338,8 @@
 
     <div class="content">
        <div id="lottie-box" style="width: 200px; height: 200px;">
-  <dotlottie-wc id="lottie-player"
-    style="width: 100%; height: 100%;"
-    autoplay>
-  </dotlottie-wc>
+  <!-- لاحظ: لا تحدد loop هنا -->
+  <dotlottie-wc id="lottie-player" style="width:100%; height:100%;"></dotlottie-wc>
 </div>
 
 <script>
@@ -351,23 +349,60 @@
     "https://lottie.host/bdf8f8b5-3525-4f66-a0cc-d70917c05aac/OToYfbsi3l.lottie"
   ];
 
-  let index = 0;
   const player = document.getElementById("lottie-player");
+  let index = 0;
 
-  // دالة تغيير الأنيميشن
-  function changeAnimation() {
-    player.setAttribute("src", animations[index]);
+  // تشغيل المصدر الحالي بعد تحميله (محاولة آمنة)
+  function playWhenReady() {
+    // يوجد دوال play على العنصر في بعض الإصدارات
+    if (typeof player.play === "function") {
+      try { player.play(); return; } catch(e) {}
+    }
+    // حدث تحميل محتمل من الويب كومبوننت
+    const onLoaded = () => {
+      if (typeof player.play === "function") {
+        try { player.play(); } catch(e) {}
+      }
+      player.removeEventListener("load", onLoaded);
+      player.removeEventListener("loaded", onLoaded);
+    };
+    player.addEventListener("load", onLoaded, { once: true });
+    player.addEventListener("loaded", onLoaded, { once: true });
+
+    // fallback بسيط: جرب التشغيل بعد 200ms إن لم يحدث شيء
+    setTimeout(() => {
+      if (typeof player.play === "function") {
+        try { player.play(); } catch(e) {}
+      }
+    }, 200);
+  }
+
+  // ضع src واطلب التشغيل عندما يصبح جاهز
+  function setAnimationSrc(src) {
+    // تأكّد من عدم وجود loop لكي يصدر حدث الانتهاء
+    if (player.hasAttribute("loop")) player.removeAttribute("loop");
+
+    player.setAttribute("src", src);
+    playWhenReady();
+  }
+
+  // تغيير للأنيميشن التالي
+  function nextAnimation() {
+    setAnimationSrc(animations[index]);
     index = (index + 1) % animations.length;
   }
 
-  // أول مرة
-  changeAnimation();
+  // مستمع لانتهاء الأنيميشن الحالي
+  // (الحدث "complete" مدعوم عادة؛ نضيف بدائل إن وجدت)
+  player.addEventListener("complete", nextAnimation);
+  player.addEventListener("finished", nextAnimation); // بعض الإصدارات قد تستعمل اسم آخر
+  // كاحتياط: بعض الإصدارات تطلق حدث "lottie-finished" أو "lottieComplete" — يمكن إضافة لو لزم
+  // player.addEventListener("lottie-finished", nextAnimation);
+  // player.addEventListener("lottieComplete", nextAnimation);
 
-  // لما ينتهي اللوتي الحالي → بدّل للّي بعده
-  player.addEventListener("complete", () => {
-    changeAnimation();
-  });
-</script> 
+  // ابدأ بالسابق (أول أنيميشن)
+  nextAnimation();
+</script>
 
         <div id="box1" class="box" style="width: 70%; margin: 5px auto; padding: 25px; background-color: rgba(255, 255, 255, 0.79);margin-left:15%; border-radius: 20px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); font-family: 'Segoe UI', sans-serif;margin-bottom:80%;">
             <h2 style="font-size: 26px; background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
