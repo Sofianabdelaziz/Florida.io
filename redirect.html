@@ -52,6 +52,14 @@
 
 <button id="openNow">فتح الآن</button>
 <p id="statusMsg"></p>
+
+    <script>
+        //التحقق من تسجيل الدخول 
+if (localStorage.getItem("isLoggedIn") !== "true") {
+    window.location.href = "index.html"; // يفتح صفحة تسجيل الدخول
+}
+    </script>
+  
 <script>
 const companies = {
   adstera:    ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
