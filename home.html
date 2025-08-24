@@ -630,38 +630,7 @@
                 });
             }
 
-// جلب ايميل المستخدم من فايرباس
-// تحقق أولاً أن Firebase جاهز
-if (typeof firebase !== "undefined" && firebase.apps.length > 0) {
-  document.addEventListener("DOMContentLoaded", function () {
-    firebase.auth().onAuthStateChanged(function (user) {
-      if (!user) return;
 
-      const userEmail   = user.email || "";
-      const firstLetter = userEmail ? userEmail.charAt(0).toUpperCase() : "";
-
-      // تأكد أن العناصر موجودة قبل التعيين
-      const topEmail       = document.getElementById("top-email");
-      const topLetter      = document.getElementById("top-letter");
-      const userEmailElement = document.getElementById("user-email");
-      const emailLetterElem  = document.getElementById("email-letter");
-
-      if (topEmail)         topEmail.textContent         = userEmail;
-      if (topLetter)        topLetter.textContent        = firstLetter;
-      if (userEmailElement) userEmailElement.textContent = userEmail;
-      if (emailLetterElem)  emailLetterElem.textContent  = firstLetter;
-    });
-  });
-} else {
-  console.warn("⚠️ Firebase غير مهيأ أو لم يتم تحميله بعد.");
-                    }
-            
-            // كود حفض بريد المستخدم الإلكتروني
-            const user = firebase.auth().currentUser;
-            if (user) {
-                const email = user.email;
-                localStorage.setItem("withdrawEmail", email);
-            }
 
         } 
         
