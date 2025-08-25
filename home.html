@@ -999,7 +999,7 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
 
     const shareText =
 `رمز الإحالة: ${code || "غير متوفر"}
-رابط الموقع: ${shareUrl}
+رابط الموقع: ${siteUrl}
 
 شاهد الإعلانات، اربح المال، وادعُ أصدقاءك لزيادة أرباحك اليومية!`;
 
@@ -1011,8 +1011,8 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
     try {
       await navigator.share({
         title: "اكسب من وقتك مع Florida.io",
-        text: shareText,
-        url: shareUrl
+        text: shareText
+        // url محذوف عمداً حتى لا يظهر الرابط النهائي تلقائياً بعد النص
       });
       console.log("تمت المشاركة بنجاح");
     } catch (err) {
