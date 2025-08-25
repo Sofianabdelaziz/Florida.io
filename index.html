@@ -219,6 +219,42 @@ if (localStorage.getItem("isLoggedIn") === "true") {
     const db = firebase.database();
 </script>
 <script>
+  // دالة تحقق / تحديث المحيل (كما أرسلتها)
+  async function checkReferral() {
+    const code = (document.getElementById("refCodeInput") || { value: "" }).value.trim();
+
+    if (!code) {
+      alert("الرجاء إدخال كود الإحالة");
+      return;
+    }
+
+    // ابحث عن المستخدم الذي يملك هذا الكود
+    const snapshot = await firebase.database().ref("users")
+      .orderByChild("referralCode")
+      .equalTo(code)
+      .once("value");
+
+    if (snapshot.exists()) {
+      snapshot.forEach(async (userSnap) => {
+        const userId = userSnap.key;
+
+        // جيب العدد الحالي للمحالين أو 0
+        const current = userSnap.val().referredUsers || 0;
+
+        // حدث العدد وأضف 1
+        await firebase.database().ref("users/" + userId).update({
+          referredUsers: current + 1
+        });
+
+        alert("تم تسجيلك كمحال 🎉");
+      });
+    } else {
+      alert("هذا الكود غير موجود ❌");
+    }
+  }
+</script>
+
+<script>
 async function handleRegister() {
 
   // دوال مساعدة معرفة في الأعلى (تصحيح ترتيب فقط — لا تغيير بالمنطق)
@@ -262,20 +298,28 @@ async function handleRegister() {
       withdraw: 0,
       referredUsers: 0,
       referralCode: referralCode,
-      referredBy: referralCodeFromURL || null
     });
 
          //حفض تسجيل الدخول 
     localStorage.setItem("isLoggedIn", "true");
 
     alert("تم إنشاء الحساب بنجاح!");
+
+    // *** إضافة: استدعاء checkReferral قبل فتح الصفحة (كما طلبت) ***
+    try {
+      await checkReferral();
+    } catch (e) {
+      console.error("خطأ أثناء تشغيل checkReferral:", e);
+      // لا نمنع الانتقال إذا فشل التحديث؛ نتابع التوجيه كما أردت
+    }
+
     window.location.href = "home.html";
 
   } catch (error) {
     alert("خطأ: " + error.message);
   }
 }
-</script>
+    </script>
  <script>
 async function handleLogin() {
   const email = document.getElementById("loginEmail").value.trim();
@@ -557,7 +601,7 @@ function showRegister() {
   <input type="password" id="registerPassword" placeholder="إنشاء كلمة مرور" />
   <i class="fas fa-eye toggle-password" onclick="togglePassword('registerPassword', this)"></i>
 </div>
-<input type="password" id="referral" placeholder="رمز الإحالة(إختياري)" />
+<input type="password" id="refCodeInput" placeholder="رمز الإحالة(إختياري)" />
     <button class="loginButton" onclick="handleRegister()">إنشاء الحساب</button>
     <div style="display: flex; align-items: center; text-align: center; margin: 0; margin-bottom: 5%;">
   <hr style="flex: 1; border: none; height: 1px; background-color: #000; margin: 0;" />
