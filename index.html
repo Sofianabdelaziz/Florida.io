@@ -222,18 +222,43 @@ if (localStorage.getItem("isLoggedIn") === "true") {
 async function checkReferral() {
   const inp = document.getElementById("refCodeInput");
   const code = (inp ? inp.value : "").trim();
-  if (!code) { alert("الرجاء إدخال كود الإحالة"); return; }
+  if (!code) {
+    alert("الرجاء إدخال كود الإحالة");
+    return;
+  }
 
-  // جيب UID صاحب الكود عبر الفهرس المباشر
-  const refUidSnap = await firebase.database().ref('referralCodes/' + code).once('value');
-  const referrerUID = refUidSnap.val();
-  if (!referrerUID) { alert("هذا الكود غير موجود ❌"); return; }
+  try {
+    // بحث مباشر داخل users بواسطة orderByChild + equalTo
+    const snapshot = await firebase.database().ref("users")
+      .orderByChild("referralCode")
+      .equalTo(code)
+      .once("value");
 
-  // زوّد عدّاد المحالين بشكل ذري (Atomic) عشان ما يصير تضارب
-  const counterRef = firebase.database().ref('users/' + referrerUID + '/referredUsers');
-  await counterRef.transaction(n => (n || 0) + 1);
+    if (!snapshot.exists()) {
+      alert("هذا الكود غير موجود ❌");
+      return;
+    }
 
-  alert("تم تسجيلك كمحال 🎉");
+    // اجمع وعود الـ transactions لكل صاحب كود و انتظرهم جميعًا
+    const txPromises = [];
+    snapshot.forEach(childSnap => {
+      const refUid = childSnap.key;
+      const counterRef = firebase.database().ref("users/" + refUid + "/referredUsers");
+
+      // transaction لزيادة العدد بشكل آمن
+      const p = counterRef.transaction(current => {
+        return (current || 0) + 1;
+      });
+
+      txPromises.push(p);
+    });
+
+    await Promise.all(txPromises);
+    alert("تم تسجيلك كمحال 🎉");
+  } catch (err) {
+    console.error("خطأ أثناء التحقق من كود الإحالة:", err);
+    alert("حدث خطأ أثناء معالجة كود الإحالة. افتح الكونصل للتفاصيل.");
+  }
 }
 </script>
 
@@ -282,8 +307,6 @@ async function handleRegister() {
       referredUsers: 0,
       referralCode: referralCode,
     });
-
-    await firebase.database().ref('referralCodes/' + referralCode).set(uid);
 
          //حفض تسجيل الدخول 
     localStorage.setItem("isLoggedIn", "true");
