@@ -229,7 +229,7 @@ async function checkReferral() {
   }
 
   try {
-    const snapshot = await firebase.database().ref("users")
+    const snapshot = await firebase.database().ref("referrals")
       .orderByChild("referralCode")
       .equalTo(code)
       .once("value");
@@ -242,7 +242,7 @@ async function checkReferral() {
     const txPromises = [];
     snapshot.forEach(childSnap => {
       const refUid = childSnap.key;
-      const counterRef = firebase.database().ref("users/" + refUid + "/referredUsers");
+      const counterRef = firebase.database().ref("referrals/" + refUid + "/referredUsers");
 
       const p = counterRef.transaction(current => {
         return (current || 0) + 1;
