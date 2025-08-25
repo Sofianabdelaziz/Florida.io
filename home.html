@@ -1325,15 +1325,24 @@ firebase.auth().onAuthStateChanged(function(user) {
       const code = snap.val();
 
       if (code) {
-        const url = 'https://sofianabdelaziz.github.io/Florida.io/' + encodeURIComponent(code);
+        const base = 'https://sofianabdelaziz.github.io/Florida.io/';
+        const url = base + encodeURIComponent(code);
 
-        // عرض الرابط كنص
-        el.textContent = url;
+        // ********** التعديل المطلوب: عرض النص كـ base فقط (دون كود الإحالة) **********
+        el.textContent = base;
 
-        // إذا كان العنصر رابط <a>، عيّن href أيضًا
+        // إذا كان العنصر رابط <a>، عيّن href للرابط الكامل (مع الكود) حتى يؤدي النقر إلى الرابط الصحيح
         if (el.tagName === 'A') {
           el.setAttribute('href', url);
         }
+
+        // ********** حفظ كود الإحالة في localStorage كما طلبت **********
+        try {
+          localStorage.setItem('referralCode', code);
+        } catch (e) {
+          console.warn('تعذّر حفظ كود الإحالة في localStorage:', e);
+        }
+
       } else {
         el.textContent = 'لم يتم إعداد كود الإحالة بعد.';
       }
