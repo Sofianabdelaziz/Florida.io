@@ -970,32 +970,55 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
     }
 </script>
 <script>
-    // اضهار نافذة المشاركة
-    function shareNow() {
-        const code = localStorage.getItem("referralcodeswap") || "";
-        const siteUrl = "https://sofianabdelaziz.github.io/Florida.io/";
-        const shareUrl = siteUrl + code;
+  // انتظر جاهزية حالة المصادقة
+  function waitForAuth() {
+    return new Promise(resolve => {
+      const off = firebase.auth().onAuthStateChanged(u => { off(); resolve(u); });
+    });
+  }
 
-        const shareText = 
-`كود الإحالة: ${code}
+  // ارجع كود الإحالة من localStorage، وإن ما لقيته جيبه من القاعدة واحفظه
+  async function getReferralCodeEnsured() {
+    let code = localStorage.getItem("referralcodeswap");
+    if (code) return code;
+
+    const user = firebase.auth().currentUser || await waitForAuth();
+    if (!user) return "";
+
+    const snap = await firebase.database().ref("users/" + user.uid + "/referralCode").once("value");
+    code = snap.val() || "";
+    if (code) localStorage.setItem("referralcodeswap", code);
+    return code;
+  }
+
+  // نافذة المشاركة
+  async function shareNow() {
+    const code = await getReferralCodeEnsured();        // ← يضمن وجود الكود
+    const siteUrl = "https://sofianabdelaziz.github.io/Florida.io/";
+    const shareUrl = siteUrl + (code || "");
+
+    const shareText =
+`رمز الإحالة: ${code || "غير متوفر"}
 رابط الموقع: ${shareUrl}
 
 شاهد الإعلانات، اربح المال، وادعُ أصدقاءك لزيادة أرباحك اليومية!`;
 
-        if (navigator.share) {
-            navigator.share({
-                title: 'اكسب من وقتك مع Florida.io',
-                text: shareText,
-                url: shareUrl
-            }).then(() => {
-                console.log('تمت المشاركة بنجاح');
-            }).catch((error) => {
-                console.error('حدث خطأ أثناء المشاركة:', error);
-            });
-        } else {
-            alert('المشاركة غير مدعومة على هذا المتصفح.');
-        }
+    if (!navigator.share) {
+      alert("المشاركة غير مدعومة على هذا المتصفح.");
+      return;
     }
+
+    try {
+      await navigator.share({
+        title: "اكسب من وقتك مع Florida.io",
+        text: shareText,
+        url: shareUrl
+      });
+      console.log("تمت المشاركة بنجاح");
+    } catch (err) {
+      console.error("حدث خطأ أثناء المشاركة:", err);
+    }
+  }
 </script>
 
 
