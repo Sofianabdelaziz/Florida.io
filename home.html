@@ -876,7 +876,7 @@ if (refText) { // ✅ فحص وجود العنصر
         .once("value")
         .then(snap => {
             const name = snap.val();
-            if (name) refText.textContent = `تمت إحالة ${name}`;
+            if (name) refText.textContent = `تمت إحالة ${name} مستخدم`;
         })
         .catch(() => {
             /* نترك الافتراضي */
