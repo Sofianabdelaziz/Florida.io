@@ -218,6 +218,7 @@ if (localStorage.getItem("isLoggedIn") === "true") {
     const auth = firebase.auth();
     const db = firebase.database();
 </script>
+
 <script>
 async function checkReferral() {
   const inp = document.getElementById("refCodeInput");
@@ -228,7 +229,6 @@ async function checkReferral() {
   }
 
   try {
-    // بحث مباشر داخل users بواسطة orderByChild + equalTo
     const snapshot = await firebase.database().ref("users")
       .orderByChild("referralCode")
       .equalTo(code)
@@ -239,13 +239,11 @@ async function checkReferral() {
       return;
     }
 
-    // اجمع وعود الـ transactions لكل صاحب كود و انتظرهم جميعًا
     const txPromises = [];
     snapshot.forEach(childSnap => {
       const refUid = childSnap.key;
       const counterRef = firebase.database().ref("users/" + refUid + "/referredUsers");
 
-      // transaction لزيادة العدد بشكل آمن
       const p = counterRef.transaction(current => {
         return (current || 0) + 1;
       });
@@ -255,9 +253,10 @@ async function checkReferral() {
 
     await Promise.all(txPromises);
     alert("تم تسجيلك كمحال 🎉");
+
   } catch (err) {
-    console.error("خطأ أثناء التحقق من كود الإحالة:", err);
-    alert("حدث خطأ أثناء معالجة كود الإحالة. افتح الكونصل للتفاصيل.");
+    console.error("🚨 خطأ Firebase:", err.code, err.message);
+    alert("حدث خطأ: " + err.message);
   }
 }
 </script>
