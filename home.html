@@ -776,12 +776,22 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
 
             //جلب كود الإحالة من القاعدة
             function getReferralCode(uid) {
-                firebase.database().ref('users/' + uid).once('value').then((snapshot) => {
-                    const data = snapshot.val(); if (data && data.referralCode) {
-                        let myReferralCode = data.referralCode; let myReferral = myReferralCode;
-                    }
-                });
-            }
+  firebase.database().ref('referrals/' + uid).once('value')
+    .then((snapshot) => {
+      const data = snapshot.val();
+      if (data && data.referralCode) {
+        let myReferralCode = data.referralCode;
+        console.log("كود الإحالة الخاص بك:", myReferralCode);
+        return myReferralCode; // يرجعه لو حابب تستعمله خارج الدالة
+      } else {
+        console.log("لا يوجد كود إحالة لهذا المستخدم");
+        return null;
+      }
+    })
+    .catch((error) => {
+      console.error("خطأ أثناء جلب كود الإحالة:", error);
+    });
+    }
 
 
 
@@ -862,7 +872,7 @@ if (refText) { // ✅ فحص وجود العنصر
     firebase.auth().onAuthStateChanged(user => {
         if (!user) return; 
         const uid = user.uid;
-        firebase.database().ref(`referredUsers/${uid}/name`)
+        firebase.database().ref(`referrals/${uid}/referredUsers`)
         .once("value")
         .then(snap => {
             const name = snap.val();
@@ -985,7 +995,7 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
     const user = firebase.auth().currentUser || await waitForAuth();
     if (!user) return "";
 
-    const snap = await firebase.database().ref("users/" + user.uid + "/referralCode").once("value");
+    const snap = await firebase.database().ref("referrals/" + user.uid + "/referralCode").once("value");
     code = snap.val() || "";
     if (code) localStorage.setItem("referralcodeswap", code);
     return code;
@@ -1356,7 +1366,7 @@ firebase.auth().onAuthStateChanged(function(user) {
   }
 
   const uid = user.uid;
-  firebase.database().ref('users/' + uid + '/referralCode')
+  firebase.database().ref('referrals/' + uid + '/referralCode')
     .once('value')
     .then(function(snap) {
       const code = snap.val();
