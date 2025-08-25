@@ -988,8 +988,8 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
   }
 
   // ارجع كود الإحالة من localStorage، وإن ما لقيته جيبه من القاعدة واحفظه
-  async function getReferralCodeEnsured() {
-    let code = localStorage.getItem("referralcodeswap");
+async function getReferralCodeEnsured() {
+    let code = myReferralCode; // 👈 استخدام المتغير بدل localStorage
     if (code) return code;
 
     const user = firebase.auth().currentUser || await waitForAuth();
