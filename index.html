@@ -352,7 +352,7 @@ async function handleLogin() {
 }
  </script>  
    
- <script>
+<script>
   function loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -372,25 +372,23 @@ async function handleLogin() {
         } else {
           // ✅ مستخدم جديد → أنشئ بياناته
           const referralCode = generateReferralCode();
-          const referralCodeFromURL = getReferralCodeFromURL();
 
-          // بيانات المستخدم الأساسية
-await firebase.database().ref("users/" + uid).set({
-  name: name,
-  email: email,
-  password: password, // ⚠️ لا ينصح تخزينه كـ نص
-  country: country,
-  balance: 0,
-  daybalance: 0,
-  Adswatch: 0,
-  withdraw: 0
-});
+          // بيانات المستخدم الأساسية (نأخذها من user الموجود)
+          await firebase.database().ref("users/" + uid).set({
+            name: user.displayName || "مستخدم جوجل",
+            email: user.email || "",
+            country: "غير محدد",
+            balance: 0,
+            daybalance: 0,
+            Adswatch: 0,
+            withdraw: 0
+          });
 
-// بيانات الإحالة (في قسم خاص)
-await firebase.database().ref("referrals/" + uid).set({
-  referralCode: referralCode,
-  referredUsers: 0
-});
+          // بيانات الإحالة (في قسم خاص)
+          await firebase.database().ref("referrals/" + uid).set({
+            referralCode: referralCode,
+            referredUsers: 0
+          });
 
           //حفظ تسجيل الدخول 
           localStorage.setItem("isLoggedIn", "true");
@@ -414,7 +412,7 @@ await firebase.database().ref("referrals/" + uid).set({
     }
     return code;
   }
- </script>  
+</script>
 
 <script>
         //عرض واخفاء كلمة المرور
