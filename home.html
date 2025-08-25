@@ -969,15 +969,24 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
         });
     }
 </script>
-
 <script>
-    //اضهار نافذة المشاركة
+    // اضهار نافذة المشاركة
     function shareNow() {
+        const code = localStorage.getItem("referralcodeswap") || "";
+        const siteUrl = "https://sofianabdelaziz.github.io/Florida.io/";
+        const shareUrl = siteUrl + code;
+
+        const shareText = 
+`كود الإحالة: ${code}
+رابط الموقع: ${shareUrl}
+
+شاهد الإعلانات، اربح المال، وادعُ أصدقاءك لزيادة أرباحك اليومية!`;
+
         if (navigator.share) {
             navigator.share({
-                title: 'انضم إليّ واربح معنا!',
-                text: 'شارك واربح نسبة من أرباح أصدقائك كل يوم!',
-                url: window.location.href
+                title: 'اكسب من وقتك مع Florida.io',
+                text: shareText,
+                url: shareUrl
             }).then(() => {
                 console.log('تمت المشاركة بنجاح');
             }).catch((error) => {
