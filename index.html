@@ -367,6 +367,10 @@ async function handleLogin() {
         if (snapshot.exists()) {
           // ✅ المستخدم عنده بيانات من قبل
           console.log("المستخدم موجود مسبقاً:", snapshot.val());
+          
+          // احفظ حالة تسجيل الدخول أيضاً هنا
+          localStorage.setItem("isLoggedIn", "true");
+
           alert("تم تسجيل الدخول بجوجل بنجاح!");
           window.location.href = "home.html";
         } else {
@@ -390,7 +394,7 @@ async function handleLogin() {
             referredUsers: 0
           });
 
-          //حفظ تسجيل الدخول 
+          // حفظ تسجيل الدخول 
           localStorage.setItem("isLoggedIn", "true");
 
           alert("تم تسجيل الدخول بجوجل بنجاح!");
