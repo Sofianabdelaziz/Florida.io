@@ -254,9 +254,6 @@ async function handleRegister() {
     // توليد كود إحالة عشوائي
     const referralCode = generateReferralCode();
 
-    // جلب كود إحالة من الرابط (إن وجد)
-    const referralCodeFromURL = getReferralCodeFromURL();
-
     // حفظ بيانات المستخدم (ملاحظة: تخزين كلمة المرور في DB غير مستحسن لكن تركتها كما كان في كودك)
     await firebase.database().ref("users/" + uid).set({
       name: name,
@@ -272,26 +269,6 @@ async function handleRegister() {
       referredBy: referralCodeFromURL || null
     });
 
-    // إذا فيه كود إحالة، حدث بيانات الشخص المحيل
-    if (referralCodeFromURL) {
-      const snapshot = await firebase.database().ref("users")
-        .orderByChild("referralCode")
-        .equalTo(referralCodeFromURL)
-        .once('value');
-
-      if (snapshot.exists()) {
-        // اجمع وعود ال-push ثم انتظرها لضمان الانتهاء قبل التوجيه
-        const pushes = [];
-        snapshot.forEach(childSnapshot => {
-          const referrerUID = childSnapshot.key;
-          pushes.push(firebase.database().ref(`users/${referrerUID}/referredUsers`).push({
-            name: name,
-            timestamp: Date.now()
-          }));
-        });
-        if (pushes.length) await Promise.all(pushes);
-      }
-    }
          //حفض تسجيل الدخول 
     localStorage.setItem("isLoggedIn", "true");
 
@@ -367,16 +344,6 @@ async function handleLogin() {
               .equalTo(referralCodeFromURL)
               .once("value");
 
-            if (refSnap.exists()) {
-              refSnap.forEach(childSnap => {
-                const referrerUID = childSnap.key;
-                firebase.database().ref(`users/${referrerUID}/referredUsers`).push({
-                  name: user.displayName || "مستخدم جوجل",
-                  timestamp: Date.now()
-                });
-              });
-            }
-          }
         }
         
          //حفض تسجيل الدخول 
@@ -399,12 +366,6 @@ async function handleLogin() {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
-  }
-
-  // استخراج كود الإحالة من الرابط
-  function getReferralCodeFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("ref");
   }
 </script>
 <script>
@@ -448,11 +409,6 @@ function generateReferralCode() {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
-}
-      //استخراج كود الإحالة من الرابط
-      function getReferralCodeFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('ref');
 }
 
 </script>
@@ -548,36 +504,7 @@ function showRegister() {
       document.getElementById("loginBox").classList.remove("hidden");
     }
 </script>
- <script>
-       //تسجيل الشخص المحيل
-    const referralCode = getReferralCodeFromURL();
-
-if (referralCode) {
-  // نفّذ الكود هنا فقط إذا كان هناك كود إحالة
   
-    // الكود المُستخرج من الرابط  
-const newUserName = document.getElementById('registerName').value; // جلب الاسم من حقل الإدخال
-
-   const snapshot = await firebase.database().ref('users')
-  .orderByChild('referralCode')
-  .equalTo(referralCode)
-  .once('value');
-
-if (snapshot.exists()) {
-  snapshot.forEach(childSnapshot => {
-    const referrerUID = childSnapshot.key;
-
-        // أضف اسم المستخدم الجديد في قائمة المُحالين  
-        firebase.database().ref(`users/${referrerUID}/referredUsers`).push({  
-          name: newUserName,  
-          timestamp: Date.now()
-        });  
-      });  
-    }  
-  });
-  </script>
-
-    
 </head>
 <body>
 
