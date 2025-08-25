@@ -231,10 +231,6 @@ async function handleRegister() {
     return code;
   }
 
-  function getReferralCodeFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('ref');
-  }
 
   const name = document.getElementById("registerName").value;
   const email = document.getElementById("registerEmail").value;
@@ -301,8 +297,7 @@ async function handleLogin() {
 }
  </script>  
    
-   
-<script>
+ <script>
   function loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -317,8 +312,8 @@ async function handleLogin() {
         if (snapshot.exists()) {
           // ✅ المستخدم عنده بيانات من قبل
           console.log("المستخدم موجود مسبقاً:", snapshot.val());
-         alert("تم تسجيل الدخول بجوجل بنجاح!");
-        window.location.href = "home.html"; 
+          alert("تم تسجيل الدخول بجوجل بنجاح!");
+          window.location.href = "home.html";
         } else {
           // ✅ مستخدم جديد → أنشئ بياناته
           const referralCode = generateReferralCode();
@@ -344,14 +339,24 @@ async function handleLogin() {
               .equalTo(referralCodeFromURL)
               .once("value");
 
-        }
-        
-         //حفض تسجيل الدخول 
-    localStorage.setItem("isLoggedIn", "true");
+            if (refSnap.exists()) {
+              refSnap.forEach(childSnap => {
+                const referrerUID = childSnap.key;
+                firebase.database().ref(`users/${referrerUID}/referredUsers`).push({
+                  name: user.displayName || "مستخدم جوجل",
+                  timestamp: Date.now()
+                });
+              });
+            }
+          }
 
-        alert("تم تسجيل الدخول بجوجل بنجاح!");
-        window.location.href = "home.html";
-      })
+          //حفظ تسجيل الدخول 
+          localStorage.setItem("isLoggedIn", "true");
+
+          alert("تم تسجيل الدخول بجوجل بنجاح!");
+          window.location.href = "home.html";
+        } // نهاية الـ else
+      }) // نهاية then(...)
       .catch((error) => {
         console.error("خطأ في تسجيل الدخول:", error);
         alert("حدث خطأ: " + error.message);
@@ -367,7 +372,8 @@ async function handleLogin() {
     }
     return code;
   }
-</script>
+ </script>  
+
 <script>
         //عرض واخفاء كلمة المرور
 function togglePassword(inputId, icon) {
