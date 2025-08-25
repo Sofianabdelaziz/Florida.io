@@ -219,39 +219,22 @@ if (localStorage.getItem("isLoggedIn") === "true") {
     const db = firebase.database();
 </script>
 <script>
-  // دالة تحقق / تحديث المحيل (كما أرسلتها)
-  async function checkReferral() {
-    const code = (document.getElementById("refCodeInput") || { value: "" }).value.trim();
+async function checkReferral() {
+  const inp = document.getElementById("refCodeInput");
+  const code = (inp ? inp.value : "").trim();
+  if (!code) { alert("الرجاء إدخال كود الإحالة"); return; }
 
-    if (!code) {
-      alert("الرجاء إدخال كود الإحالة");
-      return;
-    }
+  // جيب UID صاحب الكود عبر الفهرس المباشر
+  const refUidSnap = await firebase.database().ref('referralCodes/' + code).once('value');
+  const referrerUID = refUidSnap.val();
+  if (!referrerUID) { alert("هذا الكود غير موجود ❌"); return; }
 
-    // ابحث عن المستخدم الذي يملك هذا الكود
-    const snapshot = await firebase.database().ref("users")
-      .orderByChild("referralCode")
-      .equalTo(code)
-      .once("value");
+  // زوّد عدّاد المحالين بشكل ذري (Atomic) عشان ما يصير تضارب
+  const counterRef = firebase.database().ref('users/' + referrerUID + '/referredUsers');
+  await counterRef.transaction(n => (n || 0) + 1);
 
-    if (snapshot.exists()) {
-      snapshot.forEach(async (userSnap) => {
-        const userId = userSnap.key;
-
-        // جيب العدد الحالي للمحالين أو 0
-        const current = userSnap.val().referredUsers || 0;
-
-        // حدث العدد وأضف 1
-        await firebase.database().ref("users/" + userId).update({
-          referredUsers: current + 1
-        });
-
-        alert("تم تسجيلك كمحال 🎉");
-      });
-    } else {
-      alert("هذا الكود غير موجود ❌");
-    }
-  }
+  alert("تم تسجيلك كمحال 🎉");
+}
 </script>
 
 <script>
@@ -299,6 +282,8 @@ async function handleRegister() {
       referredUsers: 0,
       referralCode: referralCode,
     });
+
+    await firebase.database().ref('referralCodes/' + referralCode).set(uid);
 
          //حفض تسجيل الدخول 
     localStorage.setItem("isLoggedIn", "true");
