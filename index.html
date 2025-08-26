@@ -318,7 +318,7 @@ async function handleRegister() {
   const country = document.getElementById("countrySelect").value;
 
   if (!name || !email || !password || country === "اختر الدولة") {
-    showToast (يرجى ملأ جميع الحقول);
+    showToast("يرجى ملأ جميع الحقول");
     return;
   }
 
