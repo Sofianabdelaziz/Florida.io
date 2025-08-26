@@ -271,7 +271,7 @@ async function handleRegister() {
     for (let i = 0; i < 10; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return code;
+    return "SWP-" + code;
   }
 
 
@@ -414,7 +414,7 @@ async function handleLogin() {
     for (let i = 0; i < 10; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return code;
+    return "SWP-" + code;
   }
 </script>
 
@@ -600,7 +600,7 @@ function showRegister() {
   <input type="password" id="registerPassword" placeholder="إنشاء كلمة مرور" />
   <i class="fas fa-eye toggle-password" onclick="togglePassword('registerPassword', this)"></i>
 </div>
-<input type="password" id="refCodeInput" placeholder="رمز الإحالة(إختياري)" />
+<input type="text" id="refCodeInput" placeholder="رمز الإحالة(إختياري)" />
     <button class="loginButton" onclick="handleRegister()">إنشاء الحساب</button>
     <div style="display: flex; align-items: center; text-align: center; margin: 0; margin-bottom: 5%;">
   <hr style="flex: 1; border: none; height: 1px; background-color: #000; margin: 0;" />
