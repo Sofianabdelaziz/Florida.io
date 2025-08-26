@@ -204,6 +204,12 @@ backdrop-filter: blur(10px);
   }
     }
   </style>
+
+
+
+    <!--الشعار-->
+
+  
   <style>
 /* إظهار التوست */
 .toast.show {
@@ -216,7 +222,7 @@ backdrop-filter: blur(10px);
 <div id="toast"></div>
 
 <script>
-function showToast(message, duration = 3000) {
+function showToast(message, duration = 2500) {
   const toast = document.getElementById("toast");
   toast.textContent = message;
   toast.className = "toast show";
@@ -227,6 +233,12 @@ function showToast(message, duration = 3000) {
   }, duration);
 }
 </script>
+
+
+
+
+
+  
 <!-- JavaScript-->
 
   <script>
@@ -272,7 +284,7 @@ async function checkReferral() {
       .once("value");
 
     if (!snapshot.exists()) {
-      alert("خطأ في رمز الإحالة ، لم يتم العثور على الشخص المحيل ");
+      showToast("خطأ في رمز الإحالة ، لم يتم العثور على الشخص المحيل ");
       return;
     }
 
@@ -289,7 +301,7 @@ async function checkReferral() {
     });
 
     await Promise.all(txPromises);
-    alert("تم تسجيل الشخص الذي قام بإحالتك");
+    showToast("تم تسجيل الشخص الذي قام بإحالتك");
 
   } catch (err) {
     console.error("🚨 خطأ Firebase:", err.code, err.message);
@@ -351,7 +363,7 @@ await firebase.database().ref("referrals/" + uid).set({
          //حفض تسجيل الدخول 
     localStorage.setItem("isLoggedIn", "true");
 
-    alert("تم إنشاء الحساب بنجاح!");
+  showToast("تم انشاء حسابك بنجاح!");
 
     // *** إضافة: استدعاء checkReferral قبل فتح الصفحة (كما طلبت) ***
     try {
@@ -374,14 +386,14 @@ async function handleLogin() {
   const password = document.getElementById("loginPassword").value.trim();
 
   if (!email || !password) {
-    alert("يرجى إدخال البريد الإلكتروني وكلمة المرور.");
+    showToast("يرجى إدخال البريد الإلكتروني وكلمة المرور.");
     return;
   }
 
   try {
     // ✅ تسجيل الدخول فقط
     await firebase.auth().signInWithEmailAndPassword(email, password);
-    alert("تم تسجيل الدخول بنجاح!");
+    showToast("تم تسجيل الدخول بنجاح!");
     window.location.href = "home.html";
   } catch (error) {
     alert("فشل تسجيل الدخول: " + error.message);
@@ -408,7 +420,7 @@ async function handleLogin() {
           // احفظ حالة تسجيل الدخول أيضاً هنا
           localStorage.setItem("isLoggedIn", "true");
 
-          alert("تم تسجيل الدخول بجوجل بنجاح!");
+          showToast("تم تسجيل الدخول بجوجل بنجاح!");
           window.location.href = "home.html";
         } else {
           // ✅ مستخدم جديد → أنشئ بياناته
@@ -434,7 +446,7 @@ async function handleLogin() {
           // حفظ تسجيل الدخول 
           localStorage.setItem("isLoggedIn", "true");
 
-          alert("تم تسجيل الدخول بجوجل بنجاح!");
+          showToast("تم تسجيل الدخول بجوجل بنجاح!");
           window.location.href = "home.html";
         } // نهاية الـ else
       }) // نهاية then(...)
@@ -562,7 +574,7 @@ function sendResetLink() {
   const email = document.getElementById("loginEmail").value;
 
   if (!email) {
-    alert("يرجى إدخال البريد الإلكتروني أولاً.");
+    showToast("يرجى إدخال البريد الإلكتروني أولاً.");
     return;
   }
 
