@@ -278,44 +278,9 @@
   width: 100%;
   margin: 8px 0;
 }
-
-
-/* التوست (الحالة العادية: مخفي) */
-#toast {
-  visibility: hidden;
-  min-width: 250px;
-  margin-left: -125px;
-  background-color: #333;
-  color: #fff;
-  text-align: center;
-  border-radius: 10px;
-  padding: 16px;
-  position: fixed;
-  z-index: 1000;
-  left: 50%;
-  bottom: 30px;
-  font-size: 15px;
-  opacity: 0;
-  transition: opacity 0.5s, bottom 0.5s;
-}
-
-/* عند الإظهار */
-.toast.show {
-  visibility: visible;
-  opacity: 1;
-  bottom: 50px;
-}
 </style>
-
-
-
-
-
-
-
 </head>   
 <body>
-<div id="toast"></div>
 
     <div id="user-info-bar">
         <!-- الجهة اليسرى: اسم التطبيق -->
@@ -770,18 +735,7 @@
 <!-- JavaScript -->
 
                         
-<script>
-function showToast(message, duration = 2500) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.className = "toast show";
 
-  // إخفاؤه بعد المدة المحددة
-  setTimeout(() => {
-    toast.className = "toast";
-  }, duration);
-}
-</script>
 
                         <script>
 if (localStorage.getItem("isLoggedIn") !== "true") {
@@ -1420,6 +1374,68 @@ firebase.auth().onAuthStateChanged(function(user) {
     });
 });
                         </script>
+
+
+                        <!-- ضع هذا مباشرة قبل </body> -->
+<style>
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    min-width: 240px;
+    max-width: 90vw;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #333;
+    color: #fff;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.4;
+    z-index: 999999;      /* فوق كل شيء */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* ما يمنع الضغط على العناصر تحتها */
+    transition: opacity .35s ease, bottom .35s ease, visibility .35s;
+  }
+  .toast.show {
+    opacity: 1;
+    visibility: visible;
+    bottom: 50px; /* حركة لطيفة لفوق عند الظهور */
+  }
+</style>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // دالة إظهار التوست
+  function showToast(message, duration = 2500) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+      // كحماية إضافية: أنشئه تلقائيًا لو مش موجود
+      toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.className = 'toast';
+      document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+
+    // أظهره
+    toast.classList.add('show');
+
+    // أعد ضبط أي مؤقت سابق ثم أخفِه بعد المدة
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, duration);
+  }
+
+  // مثال اختبار (احذفه لو تحب)
+  // document.addEventListener('DOMContentLoaded', () => {
+  //   showToast('✅ يعمل الآن!');
+  // });
+</script>
                 
 </body>
 </html>
