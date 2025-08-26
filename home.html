@@ -1071,7 +1071,7 @@ window.onerror = function(message, source, lineno, colno, error) {
       }
       // إذا لم يكن تحويل بنكي، تحقق من الحقول العامة فقط
       else if (!amount || !account || paymentMethod === "اختر وسيلة الدفع") {
-        showToast("يرجى ملء مبلغ السحب، وبيانات الحساب، واختيار وسيلة الدفع.");
+        showToast("يرجى ملء جميع الحقول والبيانات");
         return;
       }
 
@@ -1387,7 +1387,7 @@ firebase.auth().onAuthStateChanged(function(user) {
     max-width: 90vw;
     padding: 14px 16px;
     border-radius: 12px;
-    background-color: rgba(255, 255, 255, 1);
+    background-color: rgba(255, 255, 255, 0.9);
     color: #000;
     text-align: center;
     font-size: 15px;
