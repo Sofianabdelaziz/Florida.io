@@ -773,28 +773,6 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
             const firstLetter = userEmail.charAt(0).toUpperCase();
             console.log("Email:", userEmail);
             console.log("First letter:", firstLetter);
-
-            //جلب كود الإحالة من القاعدة
-            function getReferralCode(uid) {
-  firebase.database().ref('referrals/' + uid).once('value')
-    .then((snapshot) => {
-      const data = snapshot.val();
-      if (data && data.referralCode) {
-        let myReferralCode = data.referralCode;
-        console.log("كود الإحالة الخاص بك:", myReferralCode);
-        return myReferralCode; // يرجعه لو حابب تستعمله خارج الدالة
-      } else {
-        console.log("لا يوجد كود إحالة لهذا المستخدم");
-        return null;
-      }
-    })
-    .catch((error) => {
-      console.error("خطأ أثناء جلب كود الإحالة:", error);
-    });
-    }
-
-
-
         } 
         
         
@@ -987,17 +965,13 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
     });
   }
 
-  // ارجع كود الإحالة من localStorage، وإن ما لقيته جيبه من القاعدة واحفظه
-async function getReferralCodeEnsured() {
-    let code = myReferralCode; // 👈 استخدام المتغير بدل localStorage
-    if (code) return code;
-
+  // ارجع كود الإحالة من القاعدة (referrals/<uid>/referralCode)
+  async function getReferralCodeEnsured() {
     const user = firebase.auth().currentUser || await waitForAuth();
     if (!user) return "";
 
     const snap = await firebase.database().ref("referrals/" + user.uid + "/referralCode").once("value");
-    code = snap.val() || "";
-    if (code) localStorage.setItem("referralcodeswap", code);
+    const code = snap.val() || "";
     return code;
   }
 
@@ -1025,7 +999,7 @@ async function getReferralCodeEnsured() {
 
     try {
       await navigator.share({
-        title: "اكسب من وقتك مع Florida.io",
+        title: "اكسب من وقتك مع SwapIO Ads",
         text: shareText
         // url محذوف عمداً حتى لا يظهر الرابط النهائي تلقائياً بعد النص
       });
@@ -1050,6 +1024,7 @@ async function getReferralCodeEnsured() {
         }
     </script>
     <script>
+          //كود عرض الأخطاء
 window.onerror = function(message, source, lineno, colno, error) {
   alert("خطأ: " + message + "\nفي: " + source + ":" + lineno);
 };
