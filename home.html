@@ -282,12 +282,30 @@
 
 
     </style>
-</head>
 
        <!--الإشعار-->
 
-      <style>
-/* إظهار التوست */
+<style>
+/* التوست (الحالة العادية: مخفي) */
+#toast {
+  visibility: hidden;
+  min-width: 250px;
+  margin-left: -125px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 10px;
+  padding: 16px;
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  bottom: 30px;
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity 0.5s, bottom 0.5s;
+}
+
+/* عند الإظهار */
 .toast.show {
   visibility: visible;
   opacity: 1;
@@ -313,7 +331,7 @@ function showToast(message, duration = 2500) {
 
 
 
-    
+</head>   
 <body>
 
 
