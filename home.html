@@ -1078,12 +1078,12 @@ window.onerror = function(message, source, lineno, colno, error) {
       // فحص الرصيد بشكل آمن
       var ub = (typeof userBalance !== "undefined") ? parseFloat(userBalance) : NaN;
       if (isNaN(ub)) {
-        alert("تعذّر التحقق من رصيدك، حاول لاحقًا.");
+        showToast("تعذّر التحقق من رصيدك، اتصل بشبكة جيدة و حاول لاحقًا");
         return;
       }
 
       if (parseFloat(amount) > ub) {
-        showToast("رصيدك غير كافي لإتمام السحب. رصيدك هو: " + ub + " USD");
+        alert("رصيدك غير كافي لإتمام السحب. رصيدك هو: " + ub + " USD");
         return;
       }
 
