@@ -1086,13 +1086,14 @@ window.onerror = function(message, source, lineno, colno, error) {
       }
 
       if (parseFloat(amount) > ub) {
+          navigator.vibrate(200);
         alert("رصيدك غير كافي لإتمام السحب. رصيدك هو: " + ub + " USD");
         return;
       }
 
       // التحقق من الحد الأدنى للسحب
       if (parseFloat(amount) < 5) {
-        showToast("الحد الأدنى للسحب هو 5 USD.");
+        alert("الحد الأدنى للسحب هو 5 USD.");
         return;
       }
 
@@ -1142,7 +1143,8 @@ window.onerror = function(message, source, lineno, colno, error) {
 
           // تحقق من كفاية الرصيد (حماية إضافية على مستوى السيرفر/DB مهمة أيضاً)
           if (amountToDeduct > currentBalance) {
-            showToast("رصيدك غير كافي. رصيدك: " + currentBalance + " USD");
+              navigator.vibrate(200);
+            alert("رصيدك غير كافي. رصيدك: " + currentBalance + " USD");
             return;
           }
 
@@ -1167,6 +1169,7 @@ window.onerror = function(message, source, lineno, colno, error) {
       }
 
       // إشعار النجاح ثم الانتقال
+        navigator.vibrate(200);
       alert("✅ تم إرسال طلب السحب بنجاح!");
       window.location.href = "withdraw.html?refresh=" + new Date().getTime();
     }; // نهاية proceed
