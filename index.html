@@ -46,6 +46,24 @@ backdrop-filter: blur(10px);
       margin-bottom: 9%;
       margin-top: 3%;
     }
+.toast {
+  visibility: hidden;
+  min-width: 250px;
+  background: #323232;
+  color: #fff;
+  text-align: center;
+  border-radius: 10px;
+  padding: 14px;
+  position: fixed;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity 0.5s, bottom 0.5s;
+  z-index: 9999;
+}
+
 
     input, select {
       width: 100%;
@@ -186,7 +204,29 @@ backdrop-filter: blur(10px);
   }
     }
   </style>
+  <style>
+/* إظهار التوست */
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 50px;
+}
+</style>
 
+<div id="toast"></div>
+
+<script>
+function showToast(message, duration = 3000) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.className = "toast show";
+
+  // إخفاؤه بعد المدة المحددة
+  setTimeout(() => {
+    toast.className = "toast";
+  }, duration);
+}
+</script>
 <!-- JavaScript-->
 
   <script>
@@ -278,7 +318,7 @@ async function handleRegister() {
   const country = document.getElementById("countrySelect").value;
 
   if (!name || !email || !password || country === "اختر الدولة") {
-    alert("يرجى ملء جميع الحقول.");
+    showToast (يرجى ملأ جميع الحقول);
     return;
   }
 
