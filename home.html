@@ -282,6 +282,37 @@
 
 
     </style>
+
+       <!--الإشعار-->
+
+      <style>
+/* إظهار التوست */
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 50px;
+}
+</style>
+
+<div id="toast"></div>
+
+<script>
+function showToast(message, duration = 2500) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.className = "toast show";
+
+  // إخفاؤه بعد المدة المحددة
+  setTimeout(() => {
+    toast.className = "toast";
+  }, duration);
+}
+</script>
+
+
+
+
+    
 </head>
 <body>
 
@@ -1017,9 +1048,9 @@ if (sidebar && toggleBtn) { // ✅ فحص وجود العنصرين
         function copyReferralText() {
             const text = document.getElementById("referralText").innerText;
             navigator.clipboard.writeText(text).then(() => {
-                alert("تم النسخ إلى الحافضة");
+                showToast("تم النسخ إلى الحافضة");
             }).catch(err => {
-                alert("حدث خطأ في النسخ ");
+                showToast("حدث خطأ في النسخ ");
             });
         }
     </script>
@@ -1038,7 +1069,7 @@ window.onerror = function(message, source, lineno, colno, error) {
 
     // 1) تحقق من الاتصال:
     if (!navigator.onLine) {
-      return alert("⚠ لا يوجد اتصال بالإنترنت، إتصل بالشبكة وأعد المحاولة.");
+      return showToast("⚠ لا يوجد اتصال بالإنترنت، إتصل بالشبكة وأعد المحاولة.");
     }
 
     // دالة التنفيذ الفعلية (proceed)
@@ -1060,7 +1091,7 @@ window.onerror = function(message, source, lineno, colno, error) {
         const bankSwift      = bankSwiftEl ? bankSwiftEl.value.trim() : "";
 
         if (!bankNameHolder || !bankIBAN || !bankName || !bankSwift) {
-          alert("يرجى ملء جميع بيانات التحويل البنكي.");
+          showToast("يرجى ملء جميع بيانات التحويل البنكي.");
           return;
         }
 
@@ -1072,7 +1103,7 @@ window.onerror = function(message, source, lineno, colno, error) {
       }
       // إذا لم يكن تحويل بنكي، تحقق من الحقول العامة فقط
       else if (!amount || !account || paymentMethod === "اختر وسيلة الدفع") {
-        alert("يرجى ملء مبلغ السحب، وبيانات الحساب، واختيار وسيلة الدفع.");
+        showToast("يرجى ملء مبلغ السحب، وبيانات الحساب، واختيار وسيلة الدفع.");
         return;
       }
 
@@ -1084,13 +1115,13 @@ window.onerror = function(message, source, lineno, colno, error) {
       }
 
       if (parseFloat(amount) > ub) {
-        alert("رصيدك غير كافي لإتمام السحب. رصيدك هو: " + ub + " USD");
+        showToast("رصيدك غير كافي لإتمام السحب. رصيدك هو: " + ub + " USD");
         return;
       }
 
       // التحقق من الحد الأدنى للسحب
       if (parseFloat(amount) < 5) {
-        alert("الحد الأدنى للسحب هو 5 USD.");
+        showToast("الحد الأدنى للسحب هو 5 USD.");
         return;
       }
 
@@ -1140,7 +1171,7 @@ window.onerror = function(message, source, lineno, colno, error) {
 
           // تحقق من كفاية الرصيد (حماية إضافية على مستوى السيرفر/DB مهمة أيضاً)
           if (amountToDeduct > currentBalance) {
-            alert("رصيدك غير كافي. رصيدك: " + currentBalance + " USD");
+            showToast("رصيدك غير كافي. رصيدك: " + currentBalance + " USD");
             return;
           }
 
