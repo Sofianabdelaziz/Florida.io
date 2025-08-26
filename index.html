@@ -393,6 +393,7 @@ async function handleLogin() {
   try {
     // ✅ تسجيل الدخول فقط
     await firebase.auth().signInWithEmailAndPassword(email, password);
+    localStorage.setItem("isLoggedIn", "true");
     showToast("تم تسجيل الدخول بنجاح!");
     window.location.href = "home.html";
   } catch (error) {
