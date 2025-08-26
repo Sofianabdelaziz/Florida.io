@@ -1086,8 +1086,8 @@ window.onerror = function(message, source, lineno, colno, error) {
       }
 
       if (parseFloat(amount) > ub) {
-          navigator.vibrate(200);
         alert("رصيدك غير كافي لإتمام السحب. رصيدك هو: " + ub + " USD");
+          navigator.vibrate(200);
         return;
       }
 
@@ -1143,8 +1143,8 @@ window.onerror = function(message, source, lineno, colno, error) {
 
           // تحقق من كفاية الرصيد (حماية إضافية على مستوى السيرفر/DB مهمة أيضاً)
           if (amountToDeduct > currentBalance) {
-              navigator.vibrate(200);
             alert("رصيدك غير كافي. رصيدك: " + currentBalance + " USD");
+              navigator.vibrate(200);
             return;
           }
 
