@@ -1051,7 +1051,7 @@ const uid = firebase.auth().currentUser.uid;
 // التحقق من قيمة withdraw
 firebase.database().ref("users/" + uid + "/withdraw").once("value")
   .then((snapshot) => {
-    if (snapshot.val() !== 1 && snapshot.val() !== "1") {
+    if (snapshot.val() === 2 && snapshot.val() === "2") {
       alert("هناك عملية سحب جارية بالفعل، انتظر حتى تنتهي.");
       return; // ⛔ وقف التنفيذ هنا
     }
