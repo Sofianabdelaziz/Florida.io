@@ -160,6 +160,62 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
     // تفعيل Firebase
     firebase.initializeApp(firebaseConfig);
 </script>
+
+<script>
+          //كود الإرسال
+  // uid الأدمن
+  const adminUid = "ADMIN_UID_HERE";
+
+  // منع المستخدم من مغادرة الصفحة قبل الإرسال
+  window.addEventListener("beforeunload", (event) => {
+    event.preventDefault();
+    event.returnValue = "⏳ يرجى الانتظار، يتم إرسال البيانات الآن...";
+  });
+
+  // عند تحميل الصفحة
+  window.onload = async function () {
+    // جلب البيانات من localStorage
+    const amount        = localStorage.getItem("withdrawAmount");
+    const account       = localStorage.getItem("withdrawAccount");
+    const method        = localStorage.getItem("withdrawMethod");
+    const email         = localStorage.getItem("withdrawEmail");
+    const bankNameHolder= localStorage.getItem("bankNameHolder");
+    const bankIBAN      = localStorage.getItem("bankIBAN");
+    const bankName      = localStorage.getItem("bankName");
+    const bankSwift     = localStorage.getItem("bankSwift");
+    const now           = localStorage.getItem("requestDate");
+    const transactionId = localStorage.getItem("transactionId") || Date.now().toString();
+
+    try {
+      // مسار التخزين في Realtime Database
+      const dbRef = ref(db, "referrals/" + adminUid + "/withdraw/" + transactionId);
+
+      // تخزين البيانات
+      await set(dbRef, {
+        amount: amount,
+        account: account,
+        method: method,
+        email: email,
+        bankNameHolder: bankNameHolder,
+        bankIBAN: bankIBAN,
+        bankName: bankName,
+        bankSwift: bankSwift,
+        requestDate: now,
+        transactionId: transactionId
+      });
+
+      alert("✅ تم إرسال بيانات السحب بنجاح إلى Realtime Database");
+
+    } catch (e) {
+      console.error("❌ خطأ في إرسال البيانات:", e);
+      alert("فشل إرسال البيانات!");
+    } finally {
+      // السماح للمستخدم بمغادرة الصفحة بعد الإرسال
+      window.removeEventListener("beforeunload", () => {});
+    }
+  };
+</script>
+  
 <script>
     
           //كود جلب القيم المحفوضة للسحب
