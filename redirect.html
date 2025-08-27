@@ -122,9 +122,10 @@ const companies = {
 
 let lastFive = [];
 let batchCount = 0;
-let banEvery = randomInt(1,4);
+let banEvery = randomInt(4,8);
 const adHistory = [];
 let countdownActive = false;
+let restEvery = randomInt(4,8)
 
 function getRandomCompany() {
   let keys = Object.keys(companies).filter(c => !lastFive.includes(c));
@@ -187,14 +188,21 @@ await new Promise(r => setTimeout(r, randomMs(7,12)));
   if (hour>=1 && hour<6) {
     waitTime = 50*60*1000;
   } else if (batchCount >= banEvery) {
-    waitTime = getBanPeriod();
+  waitTime = getBanPeriod();
     batchCount = 0;
-    banEvery = randomInt(1,4);
-  } else {
+    banEvery = randomInt(4,8);
+    restEvery = randomInt(4,8); // إعادة ضبط الراحة العشوائية أيضا
+  } else if (batchCount % restEvery === 0) {
+    // بعد عدد دفعات عشوائي (4-8): راحة قصيرة
     waitTime = getRestPeriod();
+    // نختار عدد جديد لمرات الراحة القادمة
+    restEvery = randomInt(4,8);
+  } else {
+    // إذا لا حظر ولا راحة: لا يوجد انتظار
+    waitTime = 0; 
   }
 
-  return waitTime; // نرجع مدة الانتظار
+  return waitTime;
 }
 
 
