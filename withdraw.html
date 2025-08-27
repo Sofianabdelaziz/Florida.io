@@ -263,7 +263,7 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
           ...payload,
           createdAt: new Date().toLocaleString("en-GB", { hour12: false }).replace(',', '')
         });
-        localStorage.setItem("with", "false");
+        localStorage.setItem("with", "true");
         alert("✅ تم إرسال بيانات السحب بنجاح إلى SwapIO Server");
 
       } catch (err) {
