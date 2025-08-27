@@ -105,19 +105,19 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
     });
 </script>
   
+
 <script>
-/* ======= CONFIG ======= */
 const companies = {
-  adstera:    ["https://www.swapio.com"],
-  popads:     ["https://www.popads.com"],
-  hilltop:    ["https://www.hilltop.com/"],
-  propeller:  ["https://www.propeller.com/"],
-  mediahub:   ["https://www.mediahub.com/"],
-  yllix:      ["https://www.yllix.com/"],
-  bidvertiser:["https://www.bidvertiser.com/"],
-  clickadu:   ["https://www.clickadu.com/"],
-  adcash:     ["https://www.adcash.com/"],
-  admaven:    ["https://www.admaven.com/"]
+  adstera:    ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  popads:     ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  hilltop:    ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  propeller:  ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  mediahub:   ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  yllix:      ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  bidvertiser:["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  clickadu:   ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  adcash:     ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
+  admaven:    ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"]
 };
 
 let lastFive = [];
@@ -125,127 +125,61 @@ let batchCount = 0;
 let banEvery = randomInt(1,4);
 const adHistory = [];
 let countdownActive = false;
-let countdownTimer = null;
 
-/* ======= أدوات مساعدة ======= */
-function randomInt(min, max) {
-  return Math.floor(Math.random()*(max-min+1))+min;
-}
-function randomMs(minSec, maxSec) {
-  return randomInt(minSec, maxSec) * 1000;
-}
-function getRestPeriod() {
-  return randomInt(5,18) * 60 * 1000; // 5-18 دقيقة
-}
-function getBanPeriod() {
-  const min = Math.floor(2.15*60), max = Math.floor(4.5*60);
-  return randomInt(min, max) * 60 * 1000; // دقائق محسوبة
-}
-
-/* ======= اختيار شركة عشوائية مع تجنب آخر 5 ======= */
 function getRandomCompany() {
   let keys = Object.keys(companies).filter(c => !lastFive.includes(c));
-  if (keys.length === 0) {
-    lastFive = [];
-    keys = Object.keys(companies);
-  }
+  if (keys.length === 0) lastFive = [], keys = Object.keys(companies);
   const pick = keys[randomInt(0, keys.length-1)];
   lastFive.push(pick);
-  if (lastFive.length > 5) lastFive.shift();
+  if (lastFive.length>5) lastFive.shift();
   return pick;
 }
 
-/* ======= سجل آخر الإعلانات (لتجنب التكرار خلال 10 دقائق) ======= */
+function randomMs(minSec, maxSec) {
+  return randomInt(minSec, maxSec) * 1000;
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function getRestPeriod() {
+  return randomInt(5,18) * 60 * 1000;
+}
+
+function getBanPeriod() {
+  const min = Math.floor(2.15*60), max = Math.floor(4.5*60);
+  return randomInt(min, max) * 60 * 1000;
+}
+
 function canShowAd(company) {
   const now = Date.now();
   const recent = adHistory.filter(e => now - e.time < 10*60*1000);
   if (recent.some(e => e.company === company)) return false;
   return true;
 }
+
 function registerAd(company) {
   adHistory.push({company, time: Date.now()});
   if (adHistory.length > 100) adHistory.shift();
 }
 
-   //هنا
-  // 📌 النصوص التي تريد عرضها
-const waitMessages = [
-  "💡 هل تعلم؟ يمكنك مضاعفة أرباحك بمشاهدة المزيد من الإعلانات!",
-  "⏳ استراحة قصيرة... استعد للإعلان التالي.",
-  "🔥 شارك التطبيق مع أصدقائك وزد أرباحك!",
-  "📈 أرباحك تكبر مع كل إعلان تشاهده.",
-  "🎯 لا تنسَ تسجيل الدخول يوميًا لتحصل على مكافأة إضافية.",
-  "💵 مشاهدتك لهذه الإعلانات تزيد رصيدك تلقائيًا!"
-];
-
-const waitTextBox = document.getElementById("waitText");
-
-// دالة لعرض نص عشوائي
-function showWaitMessage(durationMs) {
-  if (durationMs < 5000) return; // لو أقل من 5 ثواني لا تعرض شيء
-
-  const msg = waitMessages[randomInt(0, waitMessages.length - 1)];
-  waitTextBox.textContent = msg;
-  waitTextBox.style.display = "block";
-
-  // إخفاؤه عند انتهاء الانتظار
-  setTimeout(() => {
-    waitTextBox.style.display = "none";
-  }, durationMs);
-}
-
-
-
-  
-
-/* ======= الدفعة: نفتح نافذة واحدة ثم نغيّر موقعها عدة مرات ======= */
 async function runBatch() {
   const hour = new Date().getHours();
-  const size = (hour >= 1 && hour < 6) ? 3 : randomInt(4,7);
+  const size = (hour>=1 && hour<6) ? 3 : randomInt(4,7);
 
-  // نفتح نافذة فارغة في بداية النقر (يضمن أنها ضمن user gesture)
-  const adWin = window.open('', 'xpay_ad_win');
-  if (!adWin) {
-    // احتمالية الحظر — أعلم المستخدم وأرجع فترة انتظار قصيرة
-    alert('تم حظر النوافذ المنبثقة من متصفحك. اسمح للنوافذ المنبثقة أو جرب مرة أخرى.');
-    return getRestPeriod();
-  }
-
-  let shown = 0;
-  let attempts = 0;
-  const maxAttempts = size * 6; // حد محاولات لتجنّب حلقة لانهائية
-
-  while (shown < size && attempts < maxAttempts) {
-    attempts++;
+  for (let i=0; i<size; i++) {
     let comp = getRandomCompany();
-    if (!canShowAd(comp)) continue;
+    if (!canShowAd(comp)) { i--; continue; }
     const urlList = companies[comp];
     const url = urlList[randomInt(0, urlList.length-1)];
-
-    try {
-      // إعادة توجيه النافذة المفتوحة بدل فتح نوافذ جديدة
-      adWin.location.href = url;
-      registerAd(comp);
-      shown++;
-
-      // --- الوظائف التي عندك لتعويض المستخدم — يجب أن تكون معرّفة في مكان آخر ---
-      if (typeof addReward === 'function') await addReward();
-      if (typeof addWatchedAd === 'function') await addWatchedAd();
-      if (typeof addDailyReward === 'function') await addDailyReward();
-
-      // انتظار عشوائي بين الإعلانات (بالثواني)
-      const delay = randomMs(7,12);
-showWaitMessage(delay); // نعرض نص عشوائي أثناء الانتظار
-await new Promise(r => setTimeout(r, delay));
-    } catch (err) {
-      // خطأ في التنقل — كتمه واستمر
-      console.warn('خطأ أثناء فتح الإعلان:', err);
-      await new Promise(r => setTimeout(r, 1000));
-    }
+    registerAd(comp);
+    window.open(url, "_blank", "noopener,noreferrer");
+await addReward();
+await addWatchedAd();
+await addDailyReward();
+await new Promise(r => setTimeout(r, randomMs(7,12)));
   }
-
-  // إغلاق النافذة أو تركها مفتوحة — اختر ما تفضّله:
-  try { adWin.close(); } catch(e) {}
 
   batchCount++;
 
@@ -260,13 +194,38 @@ await new Promise(r => setTimeout(r, delay));
     waitTime = getRestPeriod();
   }
 
-  return waitTime;
+  return waitTime; // نرجع مدة الانتظار
 }
 
-/* ======= عدّاد الحظر مع حفظ في localStorage ======= */
+
+// ========================
+// ربط مع الزر و الرسالة
+// ========================
 const openBtn = document.getElementById('openNow');
 const statusMsg = document.getElementById('statusMsg');
 
+openBtn.addEventListener('click', async () => {
+  openBtn.disabled = true;
+  const waitTime = await runBatch(); // نحصل على المدة
+  startCountdown(waitTime);          // نبدأ عداد
+});
+
+// لما يخرج المستخدم من التبويب
+window.addEventListener('blur', () => {
+  openBtn.disabled = true;
+});
+
+// عند الرجوع للصفحة نعيد تفعيل الزر فقط إذا لا يوجد عداد شغال
+window.addEventListener('focus', () => {
+  if (!countdownActive) {
+    openBtn.disabled = false;
+    statusMsg.textContent = "";
+  }
+});
+
+// ========================
+// دالة العد التنازلي مع حفظ الحظر
+// ========================
 function formatTime(sec) {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
@@ -277,12 +236,10 @@ function formatTime(sec) {
 }
 
 function startCountdown(ms) {
-  if (countdownTimer) clearInterval(countdownTimer);
   const endTime = Date.now() + ms;
-  localStorage.setItem("banEnd", String(endTime));
-  countdownActive = true;
+  localStorage.setItem("banEnd", endTime); // حفظ وقت انتهاء الحظر
 
-  // ستايل رسالة في منتصف الشاشة (يمكن تعديل CSS خارجيًا)
+  // نخلي النص في منتصف الشاشة
   statusMsg.style.position = "fixed";
   statusMsg.style.top = "50%";
   statusMsg.style.left = "50%";
@@ -290,16 +247,16 @@ function startCountdown(ms) {
   statusMsg.style.fontSize = "20px";
   statusMsg.style.textAlign = "center";
 
-  let remaining = Math.max(0, Math.floor(ms/1000));
+  // يبدأ العداد
+  let remaining = Math.floor(ms/1000);
+  countdownActive = true;
   statusMsg.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;
-
-  countdownTimer = setInterval(() => {
+  const timer = setInterval(() => {
     remaining = Math.floor((endTime - Date.now())/1000);
     if (remaining <= 0) {
-      clearInterval(countdownTimer);
-      countdownTimer = null;
+      clearInterval(timer);
       countdownActive = false;
-      localStorage.removeItem("banEnd");
+      localStorage.removeItem("banEnd"); // حذف الحظر
       statusMsg.textContent = "";
       openBtn.disabled = false;
     } else {
@@ -308,36 +265,10 @@ function startCountdown(ms) {
   }, 1000);
 }
 
-/* ======= ربط الزر ======= */
-openBtn.addEventListener('click', async () => {
-  openBtn.disabled = true;
-  try {
-    // تشغيل الدفعة (فتح نافذة واحدة داخل runBatch)
-    const waitTime = await runBatch();
-    // بدء العدّاد للحظر
-    startCountdown(waitTime);
-  } catch (err) {
-    console.error('خطأ أثناء تشغيل الدفعة:', err);
-    openBtn.disabled = false;
-  }
-});
-
-/* تعطيل الزر عند مغادرة الصفحة */
-window.addEventListener('blur', () => {
-  openBtn.disabled = true;
-});
-window.addEventListener('focus', () => {
-  if (!countdownActive) {
-    openBtn.disabled = false;
-    statusMsg.textContent = "";
-  }
-});
-
-/* ======= استعادة حال العدّاد عند التحميل ======= */
+// عند تحميل الصفحة نتحقق إن كان هناك حظر سابق
 window.addEventListener("load", () => {
-  const banEndRaw = localStorage.getItem("banEnd");
-  if (banEndRaw) {
-    const banEnd = parseInt(banEndRaw, 10);
+  const banEnd = localStorage.getItem("banEnd");
+  if (banEnd) {
     const remaining = banEnd - Date.now();
     if (remaining > 0) {
       openBtn.disabled = true;
@@ -348,6 +279,7 @@ window.addEventListener("load", () => {
   }
 });
   </script>
+    
 
 <script>
         //تخزين رصيد.المستخدم
