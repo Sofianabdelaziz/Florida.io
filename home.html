@@ -1044,6 +1044,17 @@ window.onerror = function(message, source, lineno, colno, error) {
     if (!navigator.onLine) {
       return showToast("⚠ لا يوجد اتصال بالإنترنت، إتصل بالشبكة وأعد المحاولة.");
     }
+   //هنا التحقق
+    // جلب uid من Firebase Auth
+const uid = firebase.auth().currentUser.uid;
+
+// التحقق من قيمة withdraw
+firebase.database().ref("users/" + uid + "/withdraw").once("value")
+  .then((snapshot) => {
+    if (snapshot.val() !== 1 && snapshot.val() !== "1") {
+      alert("هناك عملية سحب جارية بالفعل، انتظر حتى تنتهي.");
+      return; // ⛔ وقف التنفيذ هنا
+    }
 
     // دالة التنفيذ الفعلية (proceed)
     var proceed = function () {
@@ -1174,12 +1185,13 @@ window.onerror = function(message, source, lineno, colno, error) {
         navigator.vibrate(200);
       alert("✅ تم إرسال طلب السحب بنجاح!");
       window.location.href = "withdraw.html?refresh=" + new Date().getTime();
-    }; // نهاية proceed
+    }; 
+      
 
     // **هنا: نريد جلب الرصيد قبل تنفيذ proceed** (إن كانت الدالة موجودة)
     if (typeof fetchUserBalance === "function") {
       try {
-        // اجعل fetchUserBalance ينادي proceed بعد الانتهاء (كما كان مُصمماً)
+        
         fetchUserBalance(proceed);
       } catch (e) {
         console.warn(e);
@@ -1187,11 +1199,12 @@ window.onerror = function(message, source, lineno, colno, error) {
         proceed();
       }
     } else {
-      // لو الدالة غير موجودة، ننفّذ proceed الآن
+      
       proceed();
     }
+      });
 
-  } // نهاية withdrawMoney
+  } 
 </script>
                         
                         
