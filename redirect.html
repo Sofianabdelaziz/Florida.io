@@ -238,8 +238,10 @@ async function runBatch() {
 
   // نفتح واحدًا تلو الآخر، وبعد إغلاق كل نافذة ننتظر 4-9 ثواني قبل فتح التالي
   // بدل urls.length نخليها عدد الإعلانات الكلي اللي نريده
-for (let i=0; i<15; i++) {   // هنا 15 إعلان (حتى لو الروابط أقل)
-  const {comp, url} = urls[i % urls.length]; // % يخليه يعيد من الأول
+for (let i = 0; i < 15; i++) {   // 15 إعلان (حتى لو الروابط أقل)
+  // نختار رابط عشوائي من القائمة
+  const {comp, url} = urls[Math.floor(Math.random() * urls.length)];
+
   const win = window.open(url, "_blank", "noopener,noreferrer");
   if (!win) {
     console.warn("Popup blocked or failed to open:", url);
@@ -250,15 +252,16 @@ for (let i=0; i<15; i++) {   // هنا 15 إعلان (حتى لو الروابط
   if (typeof addDailyReward === "function") await addDailyReward();
 
   // ننتظر إغلاق النافذة (أو انتهاء مهلة 60s)
-  await waitForPopupClose(win, 60*1000);
+  await waitForPopupClose(win, 60 * 1000);
 
   // قبل فتح الرابط التالي ننتظر عشوائي 10-17 ثانية
   if (i < 15 - 1) {
     await new Promise(r => setTimeout(r, randomMs(10,17)));
   }
 }
-  window.location.href = "redirect.html";
 
+// ✅ بعد انتهاء 15 إعلان → رجوع لصفحة redirect.html
+window.location.href = "redirect.html";
   batchCount++;
 
   let waitTime;
