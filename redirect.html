@@ -261,7 +261,6 @@ for (let i = 0; i < 15; i++) {   // 15 إعلان (حتى لو الروابط أ
 }
 
 // ✅ بعد انتهاء 15 إعلان → رجوع لصفحة redirect.html
-window.location.href = "redirect.html";
   batchCount++;
 
   let waitTime;
@@ -326,28 +325,35 @@ function formatTime(sec) {
   return `${s} ثانية`;
 }
 
+/* ===== تعديل startCountdown ليُعيد Promise ===== */
 function startCountdown(ms, type = "rest") {
-  if (!ms || ms <= 0) return;
-  const endTime = Date.now() + ms;
-  localStorage.setItem("banEnd", endTime);
-
-  countdownActive = true;
-  const label = type === "ban" ? "فترة الحظر" : "فترة الراحة";
-  let remaining = Math.floor(ms / 1000);
-  showStatus(`${label}: سيتم فتح إعلان بعد ${formatTime(remaining)}`);
-
-  const timer = setInterval(() => {
-    remaining = Math.floor((endTime - Date.now()) / 1000);
-    if (remaining <= 0) {
-      clearInterval(timer);
-      countdownActive = false;
-      localStorage.removeItem("banEnd");
-      hideStatus();
-      if (openBtn) openBtn.disabled = false;
-    } else {
-      showStatus(`${label}: سيتم فتح إعلان بعد ${formatTime(remaining)}`);
+  return new Promise((resolve) => {
+    if (!ms || ms <= 0) {
+      resolve(); // لا وقت => نكمل فورًا
+      return;
     }
-  }, 1000);
+    const endTime = Date.now() + ms;
+    localStorage.setItem("banEnd", endTime);
+
+    countdownActive = true;
+    const label = type === "ban" ? "فترة الحظر" : "فترة الراحة";
+    let remaining = Math.floor(ms / 1000);
+    showStatus(`${label}: سيتم فتح إعلان بعد ${formatTime(remaining)}`);
+
+    const timer = setInterval(() => {
+      remaining = Math.floor((endTime - Date.now()) / 1000);
+      if (remaining <= 0) {
+        clearInterval(timer);
+        countdownActive = false;
+        localStorage.removeItem("banEnd");
+        hideStatus();
+        if (openBtn) openBtn.disabled = false;
+        resolve(); // العداد انتهى -> نُخبر المستدعي
+      } else {
+        showStatus(`${label}: سيتم فتح إعلان بعد ${formatTime(remaining)}`);
+      }
+    }, 1000);
+  });
 }
 
 /* عند تحميل الصفحة: استعادة حالة الحظر لو كانت محفوظة */
