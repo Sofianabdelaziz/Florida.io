@@ -53,6 +53,15 @@
 <button id="openNow">فتح الآن</button>
 <p id="statusMsg"></p>
 
+  <div id="waitText" style="
+  position:fixed;top:20%;left:50%;
+  transform:translateX(-50%);
+  font-size:20px;text-align:center;
+  background:#000;color:#fff;
+  padding:10px 15px;border-radius:10px;
+  display:none;">
+  </div>
+
     <script>
         //التحقق من تسجيل الدخول 
 if (localStorage.getItem("isLoggedIn") !== "true") {
@@ -158,6 +167,37 @@ function registerAd(company) {
   if (adHistory.length > 100) adHistory.shift();
 }
 
+   //هنا
+  // 📌 النصوص التي تريد عرضها
+const waitMessages = [
+  "💡 هل تعلم؟ يمكنك مضاعفة أرباحك بمشاهدة المزيد من الإعلانات!",
+  "⏳ استراحة قصيرة... استعد للإعلان التالي.",
+  "🔥 شارك التطبيق مع أصدقائك وزد أرباحك!",
+  "📈 أرباحك تكبر مع كل إعلان تشاهده.",
+  "🎯 لا تنسَ تسجيل الدخول يوميًا لتحصل على مكافأة إضافية.",
+  "💵 مشاهدتك لهذه الإعلانات تزيد رصيدك تلقائيًا!"
+];
+
+const waitTextBox = document.getElementById("waitText");
+
+// دالة لعرض نص عشوائي
+function showWaitMessage(durationMs) {
+  if (durationMs < 5000) return; // لو أقل من 5 ثواني لا تعرض شيء
+
+  const msg = waitMessages[randomInt(0, waitMessages.length - 1)];
+  waitTextBox.textContent = msg;
+  waitTextBox.style.display = "block";
+
+  // إخفاؤه عند انتهاء الانتظار
+  setTimeout(() => {
+    waitTextBox.style.display = "none";
+  }, durationMs);
+}
+
+
+
+  
+
 /* ======= الدفعة: نفتح نافذة واحدة ثم نغيّر موقعها عدة مرات ======= */
 async function runBatch() {
   const hour = new Date().getHours();
@@ -194,7 +234,9 @@ async function runBatch() {
       if (typeof addDailyReward === 'function') await addDailyReward();
 
       // انتظار عشوائي بين الإعلانات (بالثواني)
-      await new Promise(r => setTimeout(r, randomMs(7,12)));
+      const delay = randomMs(7,12);
+showWaitMessage(delay); // نعرض نص عشوائي أثناء الانتظار
+await new Promise(r => setTimeout(r, delay));
     } catch (err) {
       // خطأ في التنقل — كتمه واستمر
       console.warn('خطأ أثناء فتح الإعلان:', err);
