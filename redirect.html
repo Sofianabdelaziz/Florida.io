@@ -145,11 +145,11 @@ function randomInt(min, max) {
 }
 
 function getRestPeriod() {
-  return randomInt(5,18) * 60 * 1000;
+  return randomInt(1,2) * 60 * 1000;
 }
 
 function getBanPeriod() {
-  const min = Math.floor(2.15*60), max = Math.floor(4.5*60);
+  const min = Math.floor(0.021*60), max = Math.floor(0.045*60);
   return randomInt(min, max) * 60 * 1000;
 }
 
