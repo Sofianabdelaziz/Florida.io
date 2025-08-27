@@ -160,93 +160,151 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
     // تفعيل Firebase
     firebase.initializeApp(firebaseConfig);
 </script>
-<script>
-  (function(){
-    const adminUid = "06Oe7rQjaIesgHuao3DaMdT0MzH3"; // غيّر عند الحاجة
 
-    // handler beforeunload مسموح إزالته لاحقاً
-    const beforeUnloadHandler = function (event) {
-      event.preventDefault();
-      event.returnValue = "⏳ يرجى الانتظار، يتم إرسال البيانات الآن...";
-    };
+  <script>
+(function(){
+  const adminUid = "06Oe7rQjaIesgHuao3DaMdT0MzH3"; // غَيّرها
+  const POLL_INTERVAL = 200;
+  const MAX_WAIT_MS = 5000;
 
-    // Loading overlay بسيط
-    function showLoading() {
-      if (document.getElementById('__sendWithdraw_loading')) return;
-      const el = document.createElement('div');
-      el.id = '__sendWithdraw_loading';
-      el.style = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:99999;color:#fff;font-size:18px;';
-      el.innerHTML = '<div style="padding:18px 24px;border-radius:8px;background:rgba(0,0,0,0.6);">جاري إرسال طلب السحب... ⏳</div>';
-      document.body.appendChild(el);
-    }
-    function hideLoading() {
-      const el = document.getElementById('__sendWithdraw_loading');
-      if (el) el.remove();
-    }
+  const beforeUnloadHandler = (event) => {
+    event.preventDefault();
+    event.returnValue = "⏳ يرجى الانتظار، يتم إرسال البيانات الآن...";
+  };
 
-    window.addEventListener('load', async function () {
-      // أضف beforeunload
-      window.addEventListener('beforeunload', beforeUnloadHandler);
+  function showLoading() {
+    if (document.getElementById('__sendWithdraw_loading')) return;
+    const el = document.createElement('div');
+    el.id = '__sendWithdraw_loading';
+    el.style = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:99999;color:#fff;font-size:18px;';
+    el.innerHTML = '<div style="padding:18px 24px;border-radius:8px;background:rgba(0,0,0,0.6);">جاري إرسال طلب السحب... ⏳</div>';
+    document.body.appendChild(el);
+  }
+  function hideLoading() {
+    const el = document.getElementById('__sendWithdraw_loading');
+    if (el) el.remove();
+  }
 
-      showLoading();
-
-      try {
-        // تأكد أن firebase و database متاحان (compat)
-        if (typeof firebase === 'undefined' || typeof firebase.database !== 'function') {
-          throw new Error('Firebase Realtime Database غير متاحة. تأكد من تحميل firebase-database-compat.js وتهيئة firebase.');
-        }
-
-        // جلب البيانات من localStorage
-        const amount        = localStorage.getItem("withdrawAmount");
-        const account       = localStorage.getItem("withdrawAccount");
-        const method        = localStorage.getItem("withdrawMethod");
-        const email         = localStorage.getItem("withdrawEmail");
-        const bankNameHolder= localStorage.getItem("bankNameHolder");
-        const bankIBAN      = localStorage.getItem("bankIBAN");
-        const bankName      = localStorage.getItem("bankName");
-        const bankSwift     = localStorage.getItem("bankSwift");
-        const now           = localStorage.getItem("requestDate") || new Date().toISOString();
-
-        // تحقق بسيط
-        if (!amount || !method) {
-          console.warn('بعض قيم السحب مفقودة في localStorage:', { amount, method });
-          alert('بعض بيانات السحب مفقودة. تأكد أن localStorage يحتوي withdrawAmount و withdrawMethod.');
+  function waitForFirebase() {
+    return new Promise((resolve, reject) => {
+      let waited = 0;
+      const iv = setInterval(() => {
+        const hasDb = typeof window.db !== 'undefined';
+        const hasFuncs = (window.firebaseDB && typeof window.firebaseDB.ref === 'function' && typeof window.firebaseDB.push === 'function' && typeof window.firebaseDB.set === 'function')
+                          || (typeof ref === 'function' && typeof push === 'function' && typeof set === 'function');
+        if (hasDb && hasFuncs) {
+          clearInterval(iv);
+          resolve();
           return;
         }
-
-        // مرجع المسار في Realtime Database
-        const dbRef = firebase.database().ref("referrals/" + adminUid + "/withdraw");
-
-        // push لإنشاء مفتاح فريد ثم set لوضع البيانات
-        const newRef = dbRef.push(); // هذا يولّد مفتاح فريد مثل -Nxxxxxx
-        await newRef.set({
-          amount: amount,
-          account: account || null,
-          method: method,
-          email: email || null,
-          bankNameHolder: bankNameHolder || null,
-          bankIBAN: bankIBAN || null,
-          bankName: bankName || null,
-          bankSwift: bankSwift || null,
-          requestDate: now,
-          createdAt: firebase.database.ServerValue.TIMESTAMP // طابع زمني على سيرفر Firebase
-        });
-
-        console.log("تم الإرسال بنجاح، مفتاح السجل:", newRef.key);
-        alert("✅ تم إرسال بيانات السحب بنجاح إلى Realtime Database");
-
-      } catch (err) {
-        console.error("فشل إرسال بيانات السحب:", err);
-        alert("❌ فشل إرسال البيانات! افتح الـ Console للمزيد من التفاصيل.");
-      } finally {
-        hideLoading();
-        // أزل beforeunload handler حتى يسمح للمستخدم بالمغادرة
-        window.removeEventListener('beforeunload', beforeUnloadHandler);
-      }
+        waited += POLL_INTERVAL;
+        if (waited >= MAX_WAIT_MS) {
+          clearInterval(iv);
+          reject(new Error('Firebase لم يكن جاهزاً خلال الفترة المحددة.'));
+        }
+      }, POLL_INTERVAL);
     });
-  })();
-</script>
-  
+  }
+
+  window.addEventListener('load', async function () {
+    // --- تحقق قيمة with في localStorage أولاً ---
+    const withFlag = localStorage.getItem('with'); // 'true' أو 'false' أو null
+    if (withFlag === 'true') {
+      console.log("تم إرسال بيانات السحب مسبقاً (localStorage.with === 'true') — لن يُرسل مرة أخرى.");
+      return; // لا ينفذ أي شيء لأن with = true
+    }
+    // إذا لم تكن 'true' فنكمل التنفيذ (كأن القيمة false أو غير موجودة)
+
+    // الآن نمنع المغادرة ونظهر الـ loading لأننا سنبدأ الإرسال
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+    showLoading();
+
+    try {
+      await waitForFirebase();
+    } catch (err) {
+      hideLoading();
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+      console.error(err);
+      alert('Firebase لم يتم تهيئته بعد. تأكد أن سكربت التهيئة يعمل وأنه يعرّف window.db و window.firebaseDB (ref/push/set).');
+      return;
+    }
+
+    const dbInstance = window.db;
+    const _ref  = (window.firebaseDB && window.firebaseDB.ref) || (typeof ref === 'function' && ref);
+    const _push = (window.firebaseDB && window.firebaseDB.push) || (typeof push === 'function' && push);
+    const _set  = (window.firebaseDB && window.firebaseDB.set) || (typeof set === 'function' && set);
+
+    if (!dbInstance || !_ref || !_push || !_set) {
+      hideLoading();
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+      console.error('الوظائف اللازمة غير متاحة:', { dbInstance, _ref, _push, _set });
+      alert('دوال Realtime Database غير متاحة. ضع ref/push/set على window.firebaseDB في سكربت التهيئة.');
+      return;
+    }
+
+    // جلب البيانات
+    const amount        = localStorage.getItem("withdrawAmount");
+    const account       = localStorage.getItem("withdrawAccount");
+    const method        = localStorage.getItem("withdrawMethod");
+    const email         = localStorage.getItem("withdrawEmail");
+    const bankNameHolder= localStorage.getItem("bankNameHolder");
+    const bankIBAN      = localStorage.getItem("bankIBAN");
+    const bankName      = localStorage.getItem("bankName");
+    const bankSwift     = localStorage.getItem("bankSwift");
+    // تاريخ مقروء
+    const now = new Date().toLocaleString("en-GB", { hour12: false }).replace(',', '');
+
+    if (!amount || !method) {
+      hideLoading();
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+      console.warn('بعض القيم مفقودة في localStorage:', { amount, method });
+      alert('بعض بيانات السحب مفقودة. تأكد أن localStorage يحوي withdrawAmount و withdrawMethod.');
+      return;
+    }
+
+    try {
+      // تحضير الـ payload الأساسي
+      const payload = {
+        amount: amount,
+        account: account || null,
+        method: method,
+        email: email || null,
+        requestDate: now
+      };
+
+      // أضف تفاصيل البنك فقط إذا كانت طريقة الدفع تحويل بنكي
+      if (method && method.toLowerCase().includes("bank transfers")) {
+        payload.bankNameHolder = bankNameHolder || null;
+        payload.bankIBAN = bankIBAN || null;
+        payload.bankName = bankName || null;
+        payload.bankSwift = bankSwift || null;
+      }
+
+      // push لإنشاء مفتاح فريد ثم set
+      const newRef = _push(_ref(dbInstance, "referrals/" + adminUid + "/withdraw"));
+      await _set(newRef, payload);
+
+      console.log("تم الإرسال بنجاح، المفتاح:", newRef.key || newRef.toString(), "payload:", payload);
+      // بعد نجاح الإرسال: عيّن with = 'true' في localStorage
+      try {
+        localStorage.setItem('with', 'true');
+        console.log("localStorage.with set to 'true'");
+      } catch (err) {
+        console.warn("تعذّر تعيين localStorage.with:", err);
+      }
+
+      alert("✅ تم إرسال بيانات السحب بنجاح إلى Realtime Database");
+
+    } catch (e) {
+      console.error("فشل الإرسال:", e);
+      alert("❌ فشل إرسال البيانات! انظر Console للتفاصيل.");
+    } finally {
+      hideLoading();
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+    }
+  });
+})();
+                                       </script>
 <script>
     
           //كود جلب القيم المحفوضة للسحب
