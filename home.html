@@ -1182,6 +1182,7 @@ firebase.database().ref("users/" + uid + "/withdraw").once("value")
       }
 
       // إشعار النجاح ثم الانتقال
+        localStorage.setItem("with", "true");
         navigator.vibrate(200);
       alert("✅ تم إرسال طلب السحب بنجاح!");
       window.location.href = "withdraw.html?refresh=" + new Date().getTime();
