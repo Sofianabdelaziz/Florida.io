@@ -60,7 +60,44 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
 }
     </script>
   
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
 <script>
+    // إعداد Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBhOhK3yCv4p-dhfXYx-w1aRB19a-VpRKY",
+        authDomain: "swapio-30675.firebaseapp.com",
+        projectId: "swapio-30675",
+        storageBucket: "swapio-30675.appspot.com",
+        messagingSenderId: "936588847751",
+        appId: "1:936588847751:web:81aa27a8a12fc6d6a06622",
+        measurementId: "G-L4RH076S6H",
+        databaseURL: "https://swapio-30675-default-rtdb.firebaseio.com"
+    };
+
+    // تفعيل Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // التأكد من أن المستخدم مسجل الدخول
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            const userEmail = user.email;
+            const firstLetter = userEmail.charAt(0).toUpperCase();
+            console.log("Email:", userEmail);
+            console.log("First letter:", firstLetter);
+        } else {
+            // 🚀 إعادة توجيه المستخدم إلى index.html لو غير مسجل دخول
+            window.location.href = "index.html";
+        }
+    });
+</script>
+  
+<script>
+     //عرض الإعلانات 
 const companies = {
   adstera:    ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
   popads:     ["https://www.profitableratecpm.com/vs22t45qz?key=bab4101a67d8c42924d02d1968500e1c"],
@@ -317,41 +354,6 @@ async function addReward() {
   }
 </script>
 
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
-<script>
-    // إعداد Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyBhOhK3yCv4p-dhfXYx-w1aRB19a-VpRKY",
-        authDomain: "swapio-30675.firebaseapp.com",
-        projectId: "swapio-30675",
-        storageBucket: "swapio-30675.appspot.com",
-        messagingSenderId: "936588847751",
-        appId: "1:936588847751:web:81aa27a8a12fc6d6a06622",
-        measurementId: "G-L4RH076S6H",
-        databaseURL: "https://swapio-30675-default-rtdb.firebaseio.com"
-    };
-
-    // تفعيل Firebase
-    firebase.initializeApp(firebaseConfig);
-
-    // التأكد من أن المستخدم مسجل الدخول
-    firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-            const userEmail = user.email;
-            const firstLetter = userEmail.charAt(0).toUpperCase();
-            console.log("Email:", userEmail);
-            console.log("First letter:", firstLetter);
-        } else {
-            // 🚀 إعادة توجيه المستخدم إلى index.html لو غير مسجل دخول
-            window.location.href = "index.html";
-        }
-    });
-</script>
 
 <script>
 // 🧠 عشوائية للبصمة والتشويش الطبيعي
