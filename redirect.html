@@ -253,7 +253,7 @@ async function runBatch() {
 
     // قبل فتح الرابط التالي ننتظر 4-9 ثواني (إذا هناك رابط آخر)
     if (i < urls.length - 1) {
-      await new Promise(r => setTimeout(r, randomMs(4,9)));
+      await new Promise(r => setTimeout(r, randomMs(10,17)));
     }
   }
 
