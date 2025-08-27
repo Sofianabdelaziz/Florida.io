@@ -379,9 +379,7 @@
   }
   // لو أردنا إعادة loop بعد كل شيء (نتركه مُعطَّلاً لأنه يمنع الانتهاء)
   function restoreLoopIfWanted() {
-    // لن نعيد loop تلقائياً لأن ذلك يمنع اكتشاف نهاية اللوتي.
-    // لو رغبت أن يُعاد فعلاً بعد كل تبديل أزل التعليق من السطر التالي:
-    // if (player._hadLoop) player.setAttribute("loop", "");
+    
   }
 
   // محاولة تشغيل العنصر إذا كان يدعم play()
@@ -1184,7 +1182,7 @@ firebase.database().ref("users/" + uid + "/withdraw").once("value")
       // إشعار النجاح ثم الانتقال
         localStorage.setItem("with", "false");
         navigator.vibrate(200);
-      alert("✅ تم إرسال طلب السحب بنجاح!");
+      alert("تم تجهيز بيانات السحب!");
       window.location.href = "withdraw.html?refresh=" + new Date().getTime();
     }; 
       
