@@ -143,11 +143,11 @@ function randomInt(min, max) {
 }  
   
 function getRestPeriod() {  
-  return randomInt(5,18) * 60 * 1000;  
+  return randomInt(2,3) * 60 * 1000;  
 }  
   
 function getBanPeriod() {  
-  const min = Math.floor(2.15*60), max = Math.floor(4.5*60);  
+  const min = Math.floor(1*60), max = Math.floor(2*60);  
   return randomInt(min, max) * 60 * 1000;  
 }  
   
@@ -177,7 +177,7 @@ async function runBatch() {
 await addReward();  
 await addWatchedAd();  
 await addDailyReward();  
-await new Promise(r => setTimeout(r, randomMs(7,12)));  
+await new Promise(r => setTimeout(r, randomMs(11,17)));  
   }  
 batchCount++;  
   
