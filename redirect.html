@@ -120,6 +120,34 @@ function randomMs(minSec, maxSec) {
 }
 </script>
 
+<script>
+// ===== وحدة إدارة وقت الانتظار في localStorage (موحد المفتاح) =====
+const WAIT_KEY = 'waitEndTime';
+
+function saveWaitEndTime(ms) {
+  const endTime = Date.now() + ms;
+  localStorage.setItem(WAIT_KEY, String(endTime));
+  return endTime;
+}
+
+function getWaitEndTime() {
+  const raw = localStorage.getItem(WAIT_KEY);
+  return raw ? parseInt(raw, 10) : 0;
+}
+
+function getRemainingWait() {
+  const end = getWaitEndTime();
+  const rem = end ? end - Date.now() : 0;
+  return rem > 0 ? rem : 0;
+}
+
+function clearWaitEndTime() {
+  localStorage.removeItem(WAIT_KEY);
+}
+</script>
+
+  
+
 <!-- 02 - تعريف الشركات والروابط -->
 <script>
 // هذا كود: تعريف قائمة الشركات والروابط (مصدر الإعلانات)
@@ -269,13 +297,17 @@ async function runBatch() {
     restEvery = randomInt(4, 8);
   }
 
+saveWaitEndTime(waitTime);
+
+  window.location.herf = 'redirect.html';
+  
   return waitTime;
 }
 </script>
 
 <!-- 09 - العد التنازلي وlocalStorage -->
 <script>
-// هذا كود: عرض عداد البقاء وحفظ وقت الانتهاء في localStorage
+// عرض عداد (يستخدم المفتاح waitEndTime إذا رغبت بنفس الصفحة)
 function formatTime(sec) {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
@@ -287,10 +319,12 @@ function formatTime(sec) {
 
 function startCountdown(ms) {
   if (!ms || ms <= 0) return;
-  const endTime = Date.now() + ms;
-  localStorage.setItem('banEnd', endTime);
+  // نحفظ نهاية الوقت باستخدام الدالة الموحدة (لتكون متاحة عند الانتقال للصفحة الأخرى)
+  saveWaitEndTime(ms);
 
-  // تأكد من وجود العنصر statusMsg
+  const endTime = Date.now() + ms;
+
+  // تأكد من وجود عنصر لعرض الحالة
   let statusMsgEl = document.getElementById('statusMsg');
   if (!statusMsgEl) {
     statusMsgEl = document.createElement('div');
@@ -320,7 +354,7 @@ function startCountdown(ms) {
     if (remaining <= 0) {
       clearInterval(timer);
       countdownActive = false;
-      localStorage.removeItem('banEnd');
+      clearWaitEndTime();
       statusMsgEl.textContent = '';
       const openBtnEl = document.getElementById('openNow');
       if (openBtnEl) openBtnEl.disabled = false;
@@ -469,16 +503,31 @@ function shouldTakeShortBreak(batchCountParam) {
 </script>
 
 <!-- A8 - تنفيذ الراحة القصيرة (استدعاء startCountdown والانتظار) -->
+
 <script>
-// هذا كود: يأخذ راحة قصيرة باستخدام getRestPeriod() ويعرض العداد
+// راحة قصيرة: حفظ وقت الراحة ثم إعادة توجيه لصفحة redirect.html
 async function takeShortBreak() {
   const waitTime = getRestPeriod(); // بالملّي ثانية
-  startCountdown(waitTime);
-  // ننتظر فعليًا حتى تنقضي الفترة (startCountdown لا يُعيد Promise)
-  await new Promise(res => setTimeout(res, waitTime));
+  // حفظ وقت الانتهاء
+  saveWaitEndTime(waitTime);
+  // (اختياري) إعادة ضبط restEvery الآن أو بعد العودة - هنا نعيد ضبطه الآن
+  restEvery = randomInt(4, 8);
+  // اخرج المستخدم لعرض العداد
+  window.location.href = 'redirect.html';
+}
+
+// حظر طويل: حفظ وقت الحظر ثم إعادة توجيه لصفحة redirect.html
+async function takeLongBan() {
+  const waitTime = getBanPeriod(); // بالملّي ثانية
+  saveWaitEndTime(waitTime);
+  // إعادة ضبط القيم كما في تصميمك
+  batchCount = 0;
+  banEvery = randomInt(2, 5);
+  restEvery = randomInt(4, 8);
+  // إعادة توجيه لعرض العداد
+  window.location.href = 'redirect.html';
 }
 </script>
-
 <!-- A9 - قرار متى يؤخذ الحظر الطويل -->
 <script>
 // هذا كود: يحدد إن كان يجب تطبيق الحظر الطويل بناء على batchCount و banEvery
@@ -488,18 +537,7 @@ function shouldTakeLongBan(batchCountParam) {
 </script>
 
 <!-- A10 - تنفيذ الحظر الطويل -->
-<script>
-// هذا كود: يأخذ حظرًا طويلًا باستخدام getBanPeriod() ويعرض العداد
-async function takeLongBan() {
-  const waitTime = getBanPeriod();
-  startCountdown(waitTime);
-  await new Promise(res => setTimeout(res, waitTime));
-  // إعادة ضبط بعد الحظر
-  batchCount = 0;
-  banEvery = randomInt(2, 5);
-  restEvery = randomInt(4, 8);
-}
-</script>
+
 
 <!-- A11 - إعادة التوجيه بعد الانتهاء -->
 <script>
