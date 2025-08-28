@@ -104,70 +104,172 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
         }
     });
 </script>
-  <script>  
-     //عرض الإعلانات   
-const companies = {  
-  adstera:    ["https://www.adstera.com"],  
-  popads:     ["https://www.popads.com"],  
-  hilltop:    ["https://www.hilltop.com"],  
-  propeller:  ["https://www.propeller.com"],  
-  mediahub:   ["https://www.mediahub.com"],  
-  yllix:      ["https://www.yllix.com"],  
-  bidvertiser:["https://www.bidvertiser.com"],  
-  clickadu:   ["https://www.clickadu.com"],  
-  adcash:     ["https://www.adcash.com"],  
-  admaven:    ["https://www.admaven.com"]  
-};  
+    
+<!-- 01 - أدوات عشوائية (random helpers) -->
+
+
+
+   <!--      هنا      -->
+
   
-let lastFive = [];  
-let batchCount = 0;  
-let banEvery = randomInt(2,5);  
-const adHistory = [];  
-let countdownActive = false;  
+<script>
+// هذا كود: دوال مساعدة للأعداد العشوائية والزمن
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomMs(minSec, maxSec) {
+  // يعيد الزمن بالملّي ثانية
+  return randomInt(minSec, maxSec) * 1000;
+}
+</script>
+
+<!-- 02 - تعريف الشركات والروابط -->
+
+
+
+
+
+
   
-function getRandomCompany() {  
-  let keys = Object.keys(companies).filter(c => !lastFive.includes(c));  
-  if (keys.length === 0) lastFive = [], keys = Object.keys(companies);  
-  const pick = keys[randomInt(0, keys.length-1)];  
-  lastFive.push(pick);  
-  if (lastFive.length>5) lastFive.shift();  
-  return pick;  
-}  
+<script>
+// هذا كود: تعريف قائمة الشركات والروابط (مصدر الإعلانات)
+const companies = {
+  adstera:    ["https://www.adstera.com"],
+  popads:     ["https://www.popads.com"],
+  hilltop:    ["https://www.hilltop.com"],
+  propeller:  ["https://www.propeller.com"],
+  mediahub:   ["https://www.mediahub.com"],
+  yllix:      ["https://www.yllix.com"],
+  bidvertiser:["https://www.bidvertiser.com"],
+  clickadu:   ["https://www.clickadu.com"],
+  adcash:     ["https://www.adcash.com"],
+  admaven:    ["https://www.admaven.com"]
+};
+</script>
+
+<!-- 03 - الإعدادات والمتغيرات العامة -->
+
+
+
+
+
   
-function randomMs(minSec, maxSec) {  
-  return randomInt(minSec, maxSec) * 1000;  
-}  
+<script>
+// هذا كود: متغيرات الحالة العامة وإعداداتها
+let lastFive = [];
+let batchCount = 0;
+let banEvery = randomInt(2, 5); // بعد كم دفعة يحصل الحظر الطويل
+const adHistory = [];
+let countdownActive = false;
+let restEvery = randomInt(4, 8); // بعد كم دفعات تظهر الراحة القصيرة (4-8)
+</script>
+
+<!-- 04 - فترات الراحة والحظر (الزمنيات) -->
+
+
+
+
+
   
-function randomInt(min, max) {  
-  return Math.floor(Math.random()*(max-min+1))+min;  
-}  
+<script>
+// هذا كود: دوال تعيد فترات الراحة القصيرة والحظر الطويل
+function getRestPeriod() {
+  // راحة قصيرة: 2-3 دقائق (بالدقائق في النسخة الأصلية)
+  return randomInt(2, 3) * 60 * 1000;
+}
+
+function getBanPeriod() {
+  // حظر طويل: بين 60 و120 دقيقة
+  const min = Math.floor(1 * 60), max = Math.floor(2 * 60);
+  return randomInt(min, max) * 60 * 1000;
+}
+</script>
+
+<!-- 05 - سجل الإعلانات ومنع التكرار -->
+
+
+
+
+
+
   
-function getRestPeriod() {  
-  return randomInt(2,3) * 60 * 1000;  
-}  
+<script>
+// هذا كود: تسجيل الإعلانات الحديثة ومنع إعادة عرض نفس الشركة خلال نافذة زمنية
+function canShowAd(company) {
+  const now = Date.now();
+  const recent = adHistory.filter(e => now - e.time < 10 * 60 * 1000); // 10 دقائق
+  if (recent.some(e => e.company === company)) return false;
+  return true;
+}
+
+function registerAd(company) {
+  adHistory.push({ company, time: Date.now() });
+  if (adHistory.length > 100) adHistory.shift();
+}
+</script>
+
+<!-- 06 - اختيار شركة/رابط عشوائي -->
+
+
+
+
+
+
   
-function getBanPeriod() {  
-  const min = Math.floor(1*60), max = Math.floor(2*60);  
-  return randomInt(min, max) * 60 * 1000;  
-}  
+<script>
+// هذا كود: اختيار شركة بشكل عشوائي مع تجنب آخر 5 شركات
+function getRandomCompany() {
+  let keys = Object.keys(companies).filter(c => !lastFive.includes(c));
+  if (keys.length === 0) {
+    lastFive = [];
+    keys = Object.keys(companies);
+  }
+  const pick = keys[randomInt(0, keys.length - 1)];
+  lastFive.push(pick);
+  if (lastFive.length > 5) lastFive.shift();
+  return pick;
+}
+</script>
+
+<!-- 07 - تغليف مكافآت (calls safe) -->
+
+
+
+
+
+
+
   
-function canShowAd(company) {  
-  const now = Date.now();  
-  const recent = adHistory.filter(e => now - e.time < 10*60*1000);  
-  if (recent.some(e => e.company === company)) return false;  
-  return true;  
-}  
+<script>
+// هذا كود: تغليف استدعاءات الدوال (وجودها اختياري) حتى لا يتوقف الكود
+async function callAddRewardIfExists() {
+  if (typeof addReward === 'function') try { await addReward(); } catch(e) { console.error('addReward error', e); }
+}
+async function callAddWatchedAdIfExists() {
+  if (typeof addWatchedAd === 'function') try { await addWatchedAd(); } catch(e) { console.error('addWatchedAd error', e); }
+}
+async function callAddDailyRewardIfExists() {
+  if (typeof addDailyReward === 'function') try { await addDailyReward(); } catch(e) { console.error('addDailyReward error', e); }
+}
+</script>
+
+<!-- 08 - تشغيل دفعة الإعلانات (core runBatch) -->
+
+
+
+
+
+
+
   
-function registerAd(company) {  
-  adHistory.push({company, time: Date.now()});  
-  if (adHistory.length > 100) adHistory.shift();  
-}  
+<script>
+// هذا كود: تنفيذ دفعة إعلانية واحدة (اختيار روابط، فتحها متتابعاً، إدارة الأوقات)
 async function runBatch() {
   const hour = new Date().getHours();
-  // حجم الدفعة (عدد الإعلانات في هذه الدفعة)
-  const size = (hour>=1 && hour<6) ? 3 : randomInt(4,7);
+  const size = (hour >= 1 && hour < 6) ? 3 : randomInt(4, 7);
 
-  // نجمع قائمة الروابط للدفعة (كل دفعة تحتوي size روابط مختارة عشوائياً بدون تكرار قريب)
+  // جمع روابط الدفعة
   const urls = [];
   for (let j = 0; j < size; j++) {
     let comp = getRandomCompany();
@@ -178,155 +280,166 @@ async function runBatch() {
     urls.push({ comp, url });
   }
 
-  // نفتح كل رابط في الدفعة واحداً تلو الآخر
+  // فتح كل رابط واحداً تلو الآخر مع زمن عرض 10-17s ثم غلقه
   for (let i = 0; i < urls.length; i++) {
     const { comp, url } = urls[i];
-    const win = window.open(url, "_blank", "noopener,noreferrer");
-    if (!win) {
-      console.warn("Popup blocked or failed to open:", url);
-    }
+    const win = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!win) console.warn('Popup blocked or failed to open:', url);
 
-    // استدعاءات المكافآت إن كانت معرفة
-    if (typeof addReward === "function") await addReward();
-    if (typeof addWatchedAd === "function") await addWatchedAd();
-    if (typeof addDailyReward === "function") await addDailyReward();
+    // المكافآت إذا وُجدت
+    await callAddRewardIfExists();
+    await callAddWatchedAdIfExists();
+    await callAddDailyRewardIfExists();
 
-    // نترك الإعلان مفتوحًا بين 10 و 17 ثانية (randomMs يعيد قيمة بالملّي ثانية)
+    // بقاء الإعلان مفتوحًا بين 10 و17 ثانية
     await new Promise(r => setTimeout(r, randomMs(10, 17)));
 
-    // نغلق التبويب لو ما زال مفتوحًا
-    try { if (win && !win.closed) win.close(); } catch(e) { /* بعض المتصفحات قد تمنع الوصول */ }
+    // محاولة إغلاق التبويب
+    try { if (win && !win.closed) win.close(); } catch (e) { /* لا توقف التنفيذ */ }
 
-    // استراحة قصيرة بين 0 و 4 ثواني قبل الإعلان التالي (إن لم يكن آخر إعلان في الدفعة)
-    if (i < urls.length - 1) {
-      await new Promise(r => setTimeout(r, randomMs(0, 4)));
-    }
+    // استراحة قصيرة بين 0 و4 ثواني قبل التالي
+    if (i < urls.length - 1) await new Promise(r => setTimeout(r, randomMs(0, 4)));
   }
 
-  // بعد انتهاء الدفعة نحدّث العدّاد ونقرر نوع الإنتظار التالي
+  // تحديث العداد وتحديد الانتظار التالي
   batchCount++;
-
   let waitTime;
   if (hour >= 1 && hour < 6) {
-    // وقت الليل: راحة ثابتة
-    waitTime = 50 * 60 * 1000;
+    waitTime = 50 * 60 * 1000; // وقت الليل
   } else if (batchCount >= banEvery) {
-    // حظر طويل
     waitTime = getBanPeriod();
     batchCount = 0;
     banEvery = randomInt(2, 5);
-    // إعادة ضبط restEvery لأننا بدأنا دورة جديدة
     restEvery = randomInt(4, 8);
   } else if (batchCount % restEvery === 0) {
-    // بعد كل restEvery دفعات: راحة قصيرة (مثلاً 2-3 دقائق كما في getRestPeriod)
     waitTime = getRestPeriod();
-    // نعيد اختيار restEvery للمرّة القادمة
     restEvery = randomInt(4, 8);
   } else {
-    // لا انتظار (يمكنك تعيين قيمة افتراضية لو أحببت)
     waitTime = 0;
   }
 
-  return waitTime; // ترجع مدة الانتظار بالملّي ثانية
-}  
+  return waitTime;
+}
+</script>
 
-batchCount++;  
+<!-- 09 - العد التنازلي وlocalStorage -->
+
+
+
+
+
+
+
   
-  let waitTime;  
-  if (hour>=1 && hour<6) {  
-    waitTime = 50*60*1000;  
-  } else if (batchCount >= banEvery) {  
-    waitTime = getBanPeriod();  
-    batchCount = 0;  
-    banEvery = randomInt(1,4);  
-  } else {  
-    waitTime = getRestPeriod();  
-  }  
+<script>
+// هذا كود: عرض عداد البقاء وحفظ وقت الانتهاء في localStorage
+function formatTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h} ساعة ${m} دقيقة`;
+  if (m > 0) return `${m} دقيقة ${s} ثانية`;
+  return `${s} ثانية`;
+}
+
+function startCountdown(ms) {
+  if (!ms || ms <= 0) return;
+  const endTime = Date.now() + ms;
+  localStorage.setItem('banEnd', endTime);
+
+  // تأكد من وجود العنصر statusMsg
+  let statusMsgEl = document.getElementById('statusMsg');
+  if (!statusMsgEl) {
+    statusMsgEl = document.createElement('div');
+    statusMsgEl.id = 'statusMsg';
+    document.body.appendChild(statusMsgEl);
+  }
+
+  // تنسيق العنصر
+  statusMsgEl.style.position = 'fixed';
+  statusMsgEl.style.top = '50%';
+  statusMsgEl.style.left = '50%';
+  statusMsgEl.style.transform = 'translate(-50%, -50%)';
+  statusMsgEl.style.fontSize = '20px';
+  statusMsgEl.style.textAlign = 'center';
+  statusMsgEl.style.background = 'rgba(0,0,0,0.75)';
+  statusMsgEl.style.color = '#fff';
+  statusMsgEl.style.padding = '10px 14px';
+  statusMsgEl.style.borderRadius = '8px';
+  statusMsgEl.style.zIndex = 9999;
+
+  let remaining = Math.floor(ms / 1000);
+  countdownActive = true;
+  statusMsgEl.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;
+
+  const timer = setInterval(() => {
+    remaining = Math.floor((endTime - Date.now()) / 1000);
+    if (remaining <= 0) {
+      clearInterval(timer);
+      countdownActive = false;
+      localStorage.removeItem('banEnd');
+      statusMsgEl.textContent = '';
+      const openBtnEl = document.getElementById('openNow');
+      if (openBtnEl) openBtnEl.disabled = false;
+    } else {
+      statusMsgEl.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;
+    }
+  }, 1000);
+}
+</script>
+
+<!-- 10 - الواجهة: زر البدء والتعامل مع الأحداث -->
+
+
+
+
+
+
   
-  return waitTime; // نرجع مدة الانتظار  
-}  
+<script>
+// هذا كود: ربط الواجهة (زر بدء) بباقي الوحدات وإدارة التركيز/الخروج
+(function setupUI() {
+  const openBtn = document.getElementById('openNow');
+  if (!openBtn) {
+    console.warn('زر #openNow غير موجود في الصفحة');
+    return;
+  }
+
+  openBtn.addEventListener('click', async () => {
+    openBtn.disabled = true;
+    const waitTime = await runBatch();
+    startCountdown(waitTime);
+  });
+
+  window.addEventListener('blur', () => {
+    if (openBtn) openBtn.disabled = true;
+  });
+
+  window.addEventListener('focus', () => {
+    if (!countdownActive && openBtn) {
+      openBtn.disabled = false;
+      const statusMsgEl = document.getElementById('statusMsg');
+      if (statusMsgEl) statusMsgEl.textContent = '';
+    }
+  });
+
+  // استعادة حالة الحظر عند التحميل
+  window.addEventListener('load', () => {
+    const banEnd = localStorage.getItem('banEnd');
+    if (banEnd) {
+      const remaining = banEnd - Date.now();
+      if (remaining > 0) {
+        if (openBtn) openBtn.disabled = true;
+        startCountdown(remaining);
+      } else {
+        localStorage.removeItem('banEnd');
+      }
+    }
+  });
+})();
+</script>  
+      
   
-  
-// ========================  
-// ربط مع الزر و الرسالة  
-// ========================  
-const openBtn = document.getElementById('openNow');  
-const statusMsg = document.getElementById('statusMsg');  
-  
-openBtn.addEventListener('click', async () => {  
-  openBtn.disabled = true;  
-  const waitTime = await runBatch(); // نحصل على المدة  
-  startCountdown(waitTime);          // نبدأ عداد  
-});  
-  
-// لما يخرج المستخدم من التبويب  
-window.addEventListener('blur', () => {  
-  openBtn.disabled = true;  
-});  
-  
-// عند الرجوع للصفحة نعيد تفعيل الزر فقط إذا لا يوجد عداد شغال  
-window.addEventListener('focus', () => {  
-  if (!countdownActive) {  
-    openBtn.disabled = false;  
-    statusMsg.textContent = "";  
-  }  
-});  
-  
-// ========================  
-// دالة العد التنازلي مع حفظ الحظر  
-// ========================  
-function formatTime(sec) {  
-  const h = Math.floor(sec / 3600);  
-  const m = Math.floor((sec % 3600) / 60);  
-  const s = sec % 60;  
-  if (h > 0) return `${h} ساعة ${m} دقيقة`;  
-  if (m > 0) return `${m} دقيقة ${s} ثانية`;  
-  return `${s} ثانية`;  
-}  
-function startCountdown(ms) {  
-  const endTime = Date.now() + ms;  
-  localStorage.setItem("banEnd", endTime); // حفظ وقت انتهاء الحظر  
-  
-  // نخلي النص في منتصف الشاشة  
-  statusMsg.style.position = "fixed";  
-  statusMsg.style.top = "50%";  
-  statusMsg.style.left = "50%";  
-  statusMsg.style.transform = "translate(-50%, -50%)";  
-  statusMsg.style.fontSize = "20px";  
-  statusMsg.style.textAlign = "center";  
-  
-  // يبدأ العداد  
-  let remaining = Math.floor(ms/1000);  
-  countdownActive = true;  
-  statusMsg.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;  
-  const timer = setInterval(() => {  
-    remaining = Math.floor((endTime - Date.now())/1000);  
-    if (remaining <= 0) {  
-      clearInterval(timer);  
-      countdownActive = false;  
-      localStorage.removeItem("banEnd"); // حذف الحظر  
-      statusMsg.textContent = "";  
-      openBtn.disabled = false;  
-    } else {  
-      statusMsg.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;  
-    }  
-  }, 1000);  
-}  
-  
-// عند تحميل الصفحة نتحقق إن كان هناك حظر سابق  
-window.addEventListener("load", () => {  
-  const banEnd = localStorage.getItem("banEnd");  
-  if (banEnd) {  
-    const remaining = banEnd - Date.now();  
-    if (remaining > 0) {  
-      openBtn.disabled = true;  
-      startCountdown(remaining);  
-    } else {  
-      localStorage.removeItem("banEnd");  
-    }  
-  }  
-});  
-  </script>
 <script>
         //تخزين رصيد.المستخدم
 async function addReward() {
