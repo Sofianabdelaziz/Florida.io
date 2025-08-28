@@ -331,7 +331,7 @@ async function runBatch() {
 
 saveWaitEndTime(waitTime);
 
-  window.location.herf = 'redirect.html';
+  window.location.href = 'redirect.html';
   
   return waitTime;
 }
@@ -341,7 +341,6 @@ saveWaitEndTime(waitTime);
 
 
   <script>
-const WAIT_KEY = 'waitEndTime';
 
 function getWaitEndTime() {
   const r = localStorage.getItem(WAIT_KEY);
@@ -396,12 +395,7 @@ startRedirectCountdown();
   window.addEventListener('load', () => {
     const remaining = getRemainingWait();
     if (remaining > 0) {
-      const openBtn = document.getElementById('openNow');
-      if (openBtn) openBtn.disabled = true;
-      startCountdown(remaining);
-    } else {
-      // لا يوجد انتظار محفوظ
-      // localStorage.removeItem(WAIT_KEY); // اختياري
+    window.location.href = 'redirect.html';
     }
   });
 </script>
