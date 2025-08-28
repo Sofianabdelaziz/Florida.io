@@ -5,13 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ad Viewer</title>
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-    }
+  
     #adFrame {
       width: 100vw;
       height: 100vh;
@@ -31,6 +25,36 @@
       display: none;
       z-index: 1000;
     }
+
+    body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* عمودي */
+  align-items: center;     /* أفقي */
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f9f9f9;
+}
+
+h2 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  color: #333;
+}
+
+p {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  color: #666;
+}
+
+#countdown {
+  font-size: 36px;
+  font-weight: bold;
+  color: #007bff;
+}
   </style>
 </head>
 <body>
@@ -61,6 +85,14 @@
   padding:10px 15px;border-radius:10px;
   display:none;">
   </div>
+   <!--   هنا العرض   -->
+  <h2>انتهت الدفعة</h2>
+  <p>المدة المتبقية قبل الدفعة التالية:</p>
+  <h1 id="countdown">--:--</h1>
+
+  <script src="script.js"></script>
+</body>
+</html>
 
     <script>
         //التحقق من تسجيل الدخول 
@@ -306,64 +338,58 @@ saveWaitEndTime(waitTime);
 </script>
 
 <!-- 09 - العد التنازلي وlocalStorage -->
-<script>
-// عرض عداد (يستخدم المفتاح waitEndTime إذا رغبت بنفس الصفحة)
+
+
+  <script>
+const WAIT_KEY = 'waitEndTime';
+
+function getWaitEndTime() {
+  const r = localStorage.getItem(WAIT_KEY);
+  return r ? parseInt(r, 10) : 0;
+}
+
+function getRemainingWait() {
+  const e = getWaitEndTime();
+  const rem = e ? e - Date.now() : 0;
+  return rem > 0 ? rem : 0;
+}
+
+function clearWaitEndTime() {
+  localStorage.removeItem(WAIT_KEY);
+}
+
 function formatTime(sec) {
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
+  const h = Math.floor(sec / 3600),
+        m = Math.floor((sec % 3600) / 60),
+        s = sec % 60;
   if (h > 0) return `${h} ساعة ${m} دقيقة`;
   if (m > 0) return `${m} دقيقة ${s} ثانية`;
   return `${s} ثانية`;
 }
 
-function startCountdown(ms) {
-  if (!ms || ms <= 0) return;
-  // نحفظ نهاية الوقت باستخدام الدالة الموحدة (لتكون متاحة عند الانتقال للصفحة الأخرى)
-  saveWaitEndTime(ms);
-
-  const endTime = Date.now() + ms;
-
-  // تأكد من وجود عنصر لعرض الحالة
-  let statusMsgEl = document.getElementById('statusMsg');
-  if (!statusMsgEl) {
-    statusMsgEl = document.createElement('div');
-    statusMsgEl.id = 'statusMsg';
-    document.body.appendChild(statusMsgEl);
+function startRedirectCountdown() {
+  let remaining = getRemainingWait();
+  const el = document.getElementById('countdown');
+  if (remaining <= 0) {
+    el.innerText = 'يمكنك البدء الآن';
+    return;
   }
-
-  // تنسيق العنصر
-  statusMsgEl.style.position = 'fixed';
-  statusMsgEl.style.top = '50%';
-  statusMsgEl.style.left = '50%';
-  statusMsgEl.style.transform = 'translate(-50%, -50%)';
-  statusMsgEl.style.fontSize = '20px';
-  statusMsgEl.style.textAlign = 'center';
-  statusMsgEl.style.background = 'rgba(0,0,0,0.75)';
-  statusMsgEl.style.color = '#fff';
-  statusMsgEl.style.padding = '10px 14px';
-  statusMsgEl.style.borderRadius = '8px';
-  statusMsgEl.style.zIndex = 9999;
-
-  let remaining = Math.floor(ms / 1000);
-  countdownActive = true;
-  statusMsgEl.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;
-
-  const timer = setInterval(() => {
-    remaining = Math.floor((endTime - Date.now()) / 1000);
+  el.innerText = formatTime(Math.floor(remaining / 1000));
+  const id = setInterval(() => {
+    remaining = getRemainingWait();
     if (remaining <= 0) {
-      clearInterval(timer);
-      countdownActive = false;
+      clearInterval(id);
       clearWaitEndTime();
-      statusMsgEl.textContent = '';
-      const openBtnEl = document.getElementById('openNow');
-      if (openBtnEl) openBtnEl.disabled = false;
+      el.innerText = 'يمكنك البدء الآن';
+      // window.location.href = '/'; // اختياري: رجوع تلقائي
     } else {
-      statusMsgEl.textContent = `سيتم فتح إعلان بعد ${formatTime(remaining)}`;
+      el.innerText = formatTime(Math.floor(remaining / 1000));
     }
   }, 1000);
 }
-</script>
+
+startRedirectCountdown();
+    </script>
 
 <!-- 10 - الواجهة: زر البدء والتعامل مع الأحداث -->
 <script>
