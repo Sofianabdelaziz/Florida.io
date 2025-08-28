@@ -167,18 +167,37 @@ async function runBatch() {
   const hour = new Date().getHours();  
   const size = (hour>=1 && hour<6) ? 3 : randomInt(4,7);  
   
-  for (let i=0; i<size; i++) {  
-    let comp = getRandomCompany();  
-    if (!canShowAd(comp)) { i--; continue; }  
-    const urlList = companies[comp];  
-    const url = urlList[randomInt(0, urlList.length-1)];  
-    registerAd(comp);  
-    window.open(url, "_blank", "noopener,noreferrer");  
-await addReward();  
-await addWatchedAd();  
-await addDailyReward();  
-await new Promise(r => setTimeout(r, randomMs(11,17)));  
-  }  
+  for (let i = 0; i < 15; i++) {   // مثلاً 15 إعلان
+  // نختار رابط عشوائي من القائمة
+  const { comp, url } = urls[Math.floor(Math.random() * urls.length)];
+
+  // نفتح الإعلان في تبويب جديد
+  const win = window.open(url, "_blank", "noopener,noreferrer");
+  if (!win) {
+    console.warn("Popup blocked or failed to open:", url);
+  }
+
+  // إضافاتك المعتادة
+  if (typeof addReward === "function") await addReward();
+  if (typeof addWatchedAd === "function") await addWatchedAd();
+  if (typeof addDailyReward === "function") await addDailyReward();
+
+  // نبقي الإعلان مفتوح بين 10 و 17 ثانية
+  await new Promise(r => setTimeout(r, randomMs(10, 17) * 1000));
+  if (win && !win.closed) win.close(); // نغلق الإعلان إذا مازال مفتوح
+
+  // استراحة قصيرة بين 0 و 4 ثواني قبل الإعلان التالي
+  if (i < 15 - 1) {
+    await new Promise(r => setTimeout(r, randomMs(0, 4) * 1000));
+  }
+}
+
+// بعد الانتهاء من جميع الإعلانات → نحول المستخدم لصفحة redirect.html
+
+// دالة توليد أرقام عشوائية بين min و max (بالثواني)
+function randomMs(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 batchCount++;  
   
   let waitTime;  
