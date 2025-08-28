@@ -217,7 +217,7 @@ async function callAddDailyRewardIfExists() {
 // هذا كود: تنفيذ دفعة إعلانية واحدة (اختيار روابط، فتحها متتابعاً، إدارة الأوقات)
 async function runBatch() {
   const hour = new Date().getHours();
-  const size = (hour >= 1 && hour < 6) ? 3 : randomInt(8, 15);
+  const size = (hour >= 1 && hour < 6) ? 3 : randomInt(10, 15);
 
   // جمع روابط الدفعة
   const urls = [];
@@ -253,7 +253,7 @@ async function runBatch() {
 
   // تحديث العداد وتحديد الانتظار التالي
   batchCount++;
-  let waitTime;
+  let waitTime = randomMs(3 * 60, 8 * 60);
   if (hour >= 1 && hour < 6) {
     waitTime = 50 * 60 * 1000; // وقت الليل
   } else if (batchCount >= banEvery) {
@@ -265,7 +265,8 @@ async function runBatch() {
     waitTime = getRestPeriod();
     restEvery = randomInt(4, 8);
   } else {
-    waitTime = 0;
+    waitTime += getRestPeriod();
+    restEvery = randomInt(4, 8);
   }
 
   return waitTime;
