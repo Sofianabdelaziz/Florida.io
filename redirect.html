@@ -104,7 +104,59 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
         }
     });
 </script>
-    
+
+// ============================ // الكود الأصلي الذي يستدعي كل الأجزاء // ============================
+
+<script>
+(async function mainAdFlow() {
+  // استدعاء كود الروابط
+  const urls = getAdUrls();
+
+  // إعداد العدادات
+  let batchCount = 0;
+
+  // تشغيل الحلقات والدفعات
+  for (let i = 0; i < 15; i++) {
+    const ad = pickRandomAd(urls); // استدعاء كود اختيار عشوائي
+    const win = openAd(ad.url);    // استدعاء كود فتح الإعلان
+
+    // استدعاء أكواد المكافآت
+    await handleRewards();
+
+    // استدعاء كود الانتظار العشوائي داخل الإعلان
+    await waitInsideAd();
+
+    // استدعاء كود الانتظار بين الإعلانات
+    if (i < 15 - 1) {
+      await waitBetweenAds();
+    }
+
+    batchCount++;
+
+    // بعد عدة دفعات استدعاء كود الراحة القصيرة
+    if (shouldTakeShortBreak(batchCount)) {
+      await takeShortBreak();
+    }
+
+    // بعد عدة دفعات استدعاء كود الحضر الطويل
+    if (shouldTakeLongBan(batchCount)) {
+      await takeLongBan();
+    }
+  }
+
+  // عند الانتهاء من كل الإعلانات استدعاء كود إعادة التوجيه
+  redirectToEndPage();
+})();
+</script>
+
+
+
+
+
+
+
+
+  
 <!-- 01 - أدوات عشوائية (random helpers) -->
 
 
