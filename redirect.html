@@ -107,63 +107,7 @@ if (localStorage.getItem("isLoggedIn") !== "true") {
 
 // ============================ // الكود الأصلي الذي يستدعي كل الأجزاء // ============================
 
-<script>
-(async function mainAdFlow() {
-  // استدعاء كود الروابط
-  const urls = getAdUrls();
-
-  // إعداد العدادات
-  let batchCount = 0;
-
-  // تشغيل الحلقات والدفعات
-  for (let i = 0; i < 15; i++) {
-    const ad = pickRandomAd(urls); // استدعاء كود اختيار عشوائي
-    const win = openAd(ad.url);    // استدعاء كود فتح الإعلان
-
-    // استدعاء أكواد المكافآت
-    await handleRewards();
-
-    // استدعاء كود الانتظار العشوائي داخل الإعلان
-    await waitInsideAd();
-
-    // استدعاء كود الانتظار بين الإعلانات
-    if (i < 15 - 1) {
-      await waitBetweenAds();
-    }
-
-    batchCount++;
-
-    // بعد عدة دفعات استدعاء كود الراحة القصيرة
-    if (shouldTakeShortBreak(batchCount)) {
-      await takeShortBreak();
-    }
-
-    // بعد عدة دفعات استدعاء كود الحضر الطويل
-    if (shouldTakeLongBan(batchCount)) {
-      await takeLongBan();
-    }
-  }
-
-  // عند الانتهاء من كل الإعلانات استدعاء كود إعادة التوجيه
-  redirectToEndPage();
-})();
-</script>
-
-
-
-
-
-
-
-
-  
-<!-- 01 - أدوات عشوائية (random helpers) -->
-
-
-
-   <!--      هنا      -->
-
-  
+  <!-- 01 - أدوات عشوائية (random helpers) -->
 <script>
 // هذا كود: دوال مساعدة للأعداد العشوائية والزمن
 function randomInt(min, max) {
@@ -177,13 +121,6 @@ function randomMs(minSec, maxSec) {
 </script>
 
 <!-- 02 - تعريف الشركات والروابط -->
-
-
-
-
-
-
-  
 <script>
 // هذا كود: تعريف قائمة الشركات والروابط (مصدر الإعلانات)
 const companies = {
@@ -201,33 +138,24 @@ const companies = {
 </script>
 
 <!-- 03 - الإعدادات والمتغيرات العامة -->
-
-
-
-
-
-  
 <script>
 // هذا كود: متغيرات الحالة العامة وإعداداتها
 let lastFive = [];
-let batchCount = 0;
-let banEvery = randomInt(2, 5); // بعد كم دفعة يحصل الحظر الطويل
+let batchCount = 0;                       // متغير حالة عام
+let banEvery = randomInt(2, 5);           // بعد كم دفعة يحصل الحظر الطويل
 const adHistory = [];
 let countdownActive = false;
-let restEvery = randomInt(4, 8); // بعد كم دفعات تظهر الراحة القصيرة (4-8)
+let restEvery = randomInt(4, 8);          // بعد كم دفعات تظهر الراحة القصيرة (4-8)
+
+// متغير لمتابعة آخر نافذة إعلان مفتوحة (يستخدمه openAd/waitInsideAd)
+let lastOpenedAdWin = null;
 </script>
 
 <!-- 04 - فترات الراحة والحظر (الزمنيات) -->
-
-
-
-
-
-  
 <script>
 // هذا كود: دوال تعيد فترات الراحة القصيرة والحظر الطويل
 function getRestPeriod() {
-  // راحة قصيرة: 2-3 دقائق (بالدقائق في النسخة الأصلية)
+  // راحة قصيرة: 2-3 دقائق
   return randomInt(2, 3) * 60 * 1000;
 }
 
@@ -239,13 +167,6 @@ function getBanPeriod() {
 </script>
 
 <!-- 05 - سجل الإعلانات ومنع التكرار -->
-
-
-
-
-
-
-  
 <script>
 // هذا كود: تسجيل الإعلانات الحديثة ومنع إعادة عرض نفس الشركة خلال نافذة زمنية
 function canShowAd(company) {
@@ -262,13 +183,6 @@ function registerAd(company) {
 </script>
 
 <!-- 06 - اختيار شركة/رابط عشوائي -->
-
-
-
-
-
-
-  
 <script>
 // هذا كود: اختيار شركة بشكل عشوائي مع تجنب آخر 5 شركات
 function getRandomCompany() {
@@ -285,14 +199,6 @@ function getRandomCompany() {
 </script>
 
 <!-- 07 - تغليف مكافآت (calls safe) -->
-
-
-
-
-
-
-
-  
 <script>
 // هذا كود: تغليف استدعاءات الدوال (وجودها اختياري) حتى لا يتوقف الكود
 async function callAddRewardIfExists() {
@@ -307,14 +213,6 @@ async function callAddDailyRewardIfExists() {
 </script>
 
 <!-- 08 - تشغيل دفعة الإعلانات (core runBatch) -->
-
-
-
-
-
-
-
-  
 <script>
 // هذا كود: تنفيذ دفعة إعلانية واحدة (اختيار روابط، فتحها متتابعاً، إدارة الأوقات)
 async function runBatch() {
@@ -375,14 +273,6 @@ async function runBatch() {
 </script>
 
 <!-- 09 - العد التنازلي وlocalStorage -->
-
-
-
-
-
-
-
-  
 <script>
 // هذا كود: عرض عداد البقاء وحفظ وقت الانتهاء في localStorage
 function formatTime(sec) {
@@ -441,13 +331,6 @@ function startCountdown(ms) {
 </script>
 
 <!-- 10 - الواجهة: زر البدء والتعامل مع الأحداث -->
-
-
-
-
-
-
-  
 <script>
 // هذا كود: ربط الواجهة (زر بدء) بباقي الوحدات وإدارة التركيز/الخروج
 (function setupUI() {
@@ -489,7 +372,195 @@ function startCountdown(ms) {
     }
   });
 })();
-</script>  
+</script>
+
+<!-- A1 - دالة إرجاع قائمة الإعلانات (مصدر بسيط من companies) -->
+<script>
+// هذا كود: ترجمة كائن companies إلى مصفوفة من الكائنات {comp, url}
+function getAdUrls() {
+  const arr = [];
+  for (const comp in companies) {
+    const list = companies[comp] || [];
+    for (const u of list) {
+      arr.push({ comp, url: u });
+    }
+  }
+  return arr;
+}
+</script>
+
+<!-- A2 - دالة اختيار إعلان عشوائي من المصفوفة -->
+<script>
+// هذا كود: يختار إعلانًا عشوائيًا من المصفوفة (يعادله بنفس البنية {comp, url})
+function pickRandomAd(urls) {
+  if (!Array.isArray(urls) || urls.length === 0) return null;
+  return urls[Math.floor(Math.random() * urls.length)];
+}
+</script>
+
+<!-- A3 - دالة فتح الإعلان -->
+<script>
+// هذا كود: فتح الإعلان في تبويب جديد وتخزين النافذة في متغير عام
+function openAd(url) {
+  try {
+    const win = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      console.warn('Popup blocked or failed to open:', url);
+      lastOpenedAdWin = null;
+      return null;
+    }
+    lastOpenedAdWin = win;
+    return win;
+  } catch (e) {
+    console.error('openAd error', e);
+    lastOpenedAdWin = null;
+    return null;
+  }
+}
+</script>
+
+<!-- A4 - تغليف استدعاءات المكافآت (يجمع المكالمات الثلاثة) -->
+<script>
+// هذا كود: يطالع دوال المكافآت (لو متوفرة) بطريقة آمنة
+async function handleRewards() {
+  await callAddRewardIfExists();
+  await callAddWatchedAdIfExists();
+  await callAddDailyRewardIfExists();
+}
+</script>
+
+<!-- A5 - انتظار داخل الإعلان: يبقي التبويب مفتوح 10-17 ثانية ثم يغلقه -->
+<script>
+// هذا كود: يبقي الإعلان مفتوحًا مدة عشوائية (10-17s) ثم يغلق التبويب الأخير المفتوح
+async function waitInsideAd() {
+  // مدة العرض الفعلية (بملّي ثانية)
+  const stayMs = randomMs(10, 17);
+  await new Promise(res => setTimeout(res, stayMs));
+
+  // محاولة إغلاق النافذة إن كانت موجودة
+  try {
+    if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
+      lastOpenedAdWin.close();
+      lastOpenedAdWin = null;
+    }
+  } catch (e) {
+    // لا توقف التنفيذ لو حصل خطأ cross-origin أو منع
+    console.warn('Error closing ad window', e);
+  }
+}
+</script>
+
+<!-- A6 - الانتظار بين الإعلانات: استراحة قصيرة 0-4 ثواني -->
+<script>
+// هذا كود: استراحة قصيرة بين الإعلانات (0-4s)
+function waitBetweenAds() {
+  return new Promise(res => setTimeout(res, randomMs(0, 4)));
+}
+</script>
+
+<!-- A7 - قرار متى تؤخذ الراحة القصيرة -->
+<script>
+// هذا كود: يحدد إن كان الوقت قد حان لأخذ راحة قصيرة (restEvery معرف في الوحدة العامة)
+function shouldTakeShortBreak(batchCountParam) {
+  if (typeof restEvery === 'undefined' || restEvery <= 0) return false;
+  return (batchCountParam % restEvery) === 0;
+}
+</script>
+
+<!-- A8 - تنفيذ الراحة القصيرة (استدعاء startCountdown والانتظار) -->
+<script>
+// هذا كود: يأخذ راحة قصيرة باستخدام getRestPeriod() ويعرض العداد
+async function takeShortBreak() {
+  const waitTime = getRestPeriod(); // بالملّي ثانية
+  startCountdown(waitTime);
+  // ننتظر فعليًا حتى تنقضي الفترة (startCountdown لا يُعيد Promise)
+  await new Promise(res => setTimeout(res, waitTime));
+}
+</script>
+
+<!-- A9 - قرار متى يؤخذ الحظر الطويل -->
+<script>
+// هذا كود: يحدد إن كان يجب تطبيق الحظر الطويل بناء على batchCount و banEvery
+function shouldTakeLongBan(batchCountParam) {
+  return batchCountParam >= banEvery;
+}
+</script>
+
+<!-- A10 - تنفيذ الحظر الطويل -->
+<script>
+// هذا كود: يأخذ حظرًا طويلًا باستخدام getBanPeriod() ويعرض العداد
+async function takeLongBan() {
+  const waitTime = getBanPeriod();
+  startCountdown(waitTime);
+  await new Promise(res => setTimeout(res, waitTime));
+  // إعادة ضبط بعد الحظر
+  batchCount = 0;
+  banEvery = randomInt(2, 5);
+  restEvery = randomInt(4, 8);
+}
+</script>
+
+<!-- A11 - إعادة التوجيه بعد الانتهاء -->
+<script>
+// هذا كود: يعيد توجيه المستخدم لصفحة النهاية (يمكنك تغيير الرابط)
+function redirectToEndPage() {
+  window.location.href = 'redirect.html';
+}
+</script>
+
+<!-- ========== الكود الأصلي القابل للتشغيل (mainAdFlow) - يجب أن يكون آخر شيء في الملف ========== -->
+<script>
+(async function mainAdFlow() {
+  // استدعاء كود الروابط
+  const urls = getAdUrls();
+
+  // NOTE: لا نعيد تعريف batchCount هنا (نستخدم المتغير العام لتعقب الدفعات)
+
+  // تشغيل الحلقات والدفعات
+  for (let i = 0; i < 15; i++) {
+    const ad = pickRandomAd(urls); // استدعاء كود اختيار عشوائي
+    if (!ad) continue;
+
+    const win = openAd(ad.url);    // استدعاء كود فتح الإعلان
+
+    // استدعاء أكواد المكافآت
+    await handleRewards();
+
+    // استدعاء كود الانتظار العشوائي داخل الإعلان
+    await waitInsideAd();
+
+    // استدعاء كود الانتظار بين الإعلانات
+    if (i < 15 - 1) {
+      await waitBetweenAds();
+    }
+
+    batchCount++;
+
+    // بعد عدة دفعات استدعاء كود الراحة القصيرة
+    if (shouldTakeShortBreak(batchCount)) {
+      await takeShortBreak();
+    }
+
+    // بعد عدة دفعات استدعاء كود الحضر الطويل
+    if (shouldTakeLongBan(batchCount)) {
+      await takeLongBan();
+    }
+  }
+
+  // عند الانتهاء من كل الإعلانات استدعاء كود إعادة التوجيه
+  redirectToEndPage();
+})();
+</script>    
+
+
+
+
+
+
+       <!--    التخزين      -->
+
+
+
       
   
 <script>
