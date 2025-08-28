@@ -171,7 +171,7 @@ function getBanPeriod() {
 // هذا كود: تسجيل الإعلانات الحديثة ومنع إعادة عرض نفس الشركة خلال نافذة زمنية
 function canShowAd(company) {
   const now = Date.now();
-  const recent = adHistory.filter(e => now - e.time < 10 * 60 * 1000); // 10 دقائق
+  const recent = adHistory.filter(e => now - e.time < 55 * 1000); // 10 دقائق
   if (recent.some(e => e.company === company)) return false;
   return true;
 }
