@@ -367,46 +367,17 @@ function startCountdown(ms) {
 
 <!-- 10 - الواجهة: زر البدء والتعامل مع الأحداث -->
 <script>
-// هذا كود: ربط الواجهة (زر بدء) بباقي الوحدات وإدارة التركيز/الخروج
-(function setupUI() {
-  const openBtn = document.getElementById('openNow');
-  if (!openBtn) {
-    console.warn('زر #openNow غير موجود في الصفحة');
-    return;
-  }
-
-  openBtn.addEventListener('click', async () => {
-    openBtn.disabled = true;
-    const waitTime = await runBatch();
-    startCountdown(waitTime);
-  });
-
-  window.addEventListener('blur', () => {
-    if (openBtn) openBtn.disabled = true;
-  });
-
-  window.addEventListener('focus', () => {
-    if (!countdownActive && openBtn) {
-      openBtn.disabled = false;
-      const statusMsgEl = document.getElementById('statusMsg');
-      if (statusMsgEl) statusMsgEl.textContent = '';
-    }
-  });
-
-  // استعادة حالة الحظر عند التحميل
   window.addEventListener('load', () => {
-    const banEnd = localStorage.getItem('banEnd');
-    if (banEnd) {
-      const remaining = banEnd - Date.now();
-      if (remaining > 0) {
-        if (openBtn) openBtn.disabled = true;
-        startCountdown(remaining);
-      } else {
-        localStorage.removeItem('banEnd');
-      }
+    const remaining = getRemainingWait();
+    if (remaining > 0) {
+      const openBtn = document.getElementById('openNow');
+      if (openBtn) openBtn.disabled = true;
+      startCountdown(remaining);
+    } else {
+      // لا يوجد انتظار محفوظ
+      // localStorage.removeItem(WAIT_KEY); // اختياري
     }
   });
-})();
 </script>
 
 <!-- A1 - دالة إرجاع قائمة الإعلانات (مصدر بسيط من companies) -->
