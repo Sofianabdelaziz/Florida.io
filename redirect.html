@@ -121,7 +121,7 @@ const companies = {
   
 let lastFive = [];  
 let batchCount = 0;  
-let banEvery = randomInt(1,4);  
+let banEvery = randomInt(2,5);  
 const adHistory = [];  
 let countdownActive = false;  
   
@@ -162,42 +162,74 @@ function registerAd(company) {
   adHistory.push({company, time: Date.now()});  
   if (adHistory.length > 100) adHistory.shift();  
 }  
-  
-async function runBatch() {  
-  const hour = new Date().getHours();  
-  const size = (hour>=1 && hour<6) ? 3 : randomInt(4,7);  
-  
-  for (let i = 0; i < 15; i++) {   // مثلاً 15 إعلان
-  // نختار رابط عشوائي من القائمة
-  const { comp, url } = urls[Math.floor(Math.random() * urls.length)];
+async function runBatch() {
+  const hour = new Date().getHours();
+  // حجم الدفعة (عدد الإعلانات في هذه الدفعة)
+  const size = (hour>=1 && hour<6) ? 3 : randomInt(4,7);
 
-  // نفتح الإعلان في تبويب جديد
-  const win = window.open(url, "_blank", "noopener,noreferrer");
-  if (!win) {
-    console.warn("Popup blocked or failed to open:", url);
+  // نجمع قائمة الروابط للدفعة (كل دفعة تحتوي size روابط مختارة عشوائياً بدون تكرار قريب)
+  const urls = [];
+  for (let j = 0; j < size; j++) {
+    let comp = getRandomCompany();
+    if (!canShowAd(comp)) { j--; continue; }
+    const urlList = companies[comp];
+    const url = urlList[randomInt(0, urlList.length - 1)];
+    registerAd(comp);
+    urls.push({ comp, url });
   }
 
-  // إضافاتك المعتادة
-  if (typeof addReward === "function") await addReward();
-  if (typeof addWatchedAd === "function") await addWatchedAd();
-  if (typeof addDailyReward === "function") await addDailyReward();
+  // نفتح كل رابط في الدفعة واحداً تلو الآخر
+  for (let i = 0; i < urls.length; i++) {
+    const { comp, url } = urls[i];
+    const win = window.open(url, "_blank", "noopener,noreferrer");
+    if (!win) {
+      console.warn("Popup blocked or failed to open:", url);
+    }
 
-  // نبقي الإعلان مفتوح بين 10 و 17 ثانية
-  await new Promise(r => setTimeout(r, randomMs(10, 17) * 1000));
-  if (win && !win.closed) win.close(); // نغلق الإعلان إذا مازال مفتوح
+    // استدعاءات المكافآت إن كانت معرفة
+    if (typeof addReward === "function") await addReward();
+    if (typeof addWatchedAd === "function") await addWatchedAd();
+    if (typeof addDailyReward === "function") await addDailyReward();
 
-  // استراحة قصيرة بين 0 و 4 ثواني قبل الإعلان التالي
-  if (i < 15 - 1) {
-    await new Promise(r => setTimeout(r, randomMs(0, 4) * 1000));
+    // نترك الإعلان مفتوحًا بين 10 و 17 ثانية (randomMs يعيد قيمة بالملّي ثانية)
+    await new Promise(r => setTimeout(r, randomMs(10, 17)));
+
+    // نغلق التبويب لو ما زال مفتوحًا
+    try { if (win && !win.closed) win.close(); } catch(e) { /* بعض المتصفحات قد تمنع الوصول */ }
+
+    // استراحة قصيرة بين 0 و 4 ثواني قبل الإعلان التالي (إن لم يكن آخر إعلان في الدفعة)
+    if (i < urls.length - 1) {
+      await new Promise(r => setTimeout(r, randomMs(0, 4)));
+    }
   }
-}
 
-// بعد الانتهاء من جميع الإعلانات → نحول المستخدم لصفحة redirect.html
+  // بعد انتهاء الدفعة نحدّث العدّاد ونقرر نوع الإنتظار التالي
+  batchCount++;
 
-// دالة توليد أرقام عشوائية بين min و max (بالثواني)
-function randomMs(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+  let waitTime;
+  if (hour >= 1 && hour < 6) {
+    // وقت الليل: راحة ثابتة
+    waitTime = 50 * 60 * 1000;
+  } else if (batchCount >= banEvery) {
+    // حظر طويل
+    waitTime = getBanPeriod();
+    batchCount = 0;
+    banEvery = randomInt(2, 5);
+    // إعادة ضبط restEvery لأننا بدأنا دورة جديدة
+    restEvery = randomInt(4, 8);
+  } else if (batchCount % restEvery === 0) {
+    // بعد كل restEvery دفعات: راحة قصيرة (مثلاً 2-3 دقائق كما في getRestPeriod)
+    waitTime = getRestPeriod();
+    // نعيد اختيار restEvery للمرّة القادمة
+    restEvery = randomInt(4, 8);
+  } else {
+    // لا انتظار (يمكنك تعيين قيمة افتراضية لو أحببت)
+    waitTime = 0;
+  }
+
+  return waitTime; // ترجع مدة الانتظار بالملّي ثانية
+}  
+
 batchCount++;  
   
   let waitTime;  
