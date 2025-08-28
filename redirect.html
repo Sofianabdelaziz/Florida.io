@@ -242,6 +242,13 @@ function registerAd(company) {
 }
 </script>
 
+
+<script>
+/* منع تشغيل متكرر */
+window.__adRunner = window.__adRunner || { isRunning: false };
+</script>
+
+
 <!-- 06 - اختيار شركة/رابط عشوائي -->
 <script>
 // هذا كود: اختيار شركة بشكل عشوائي مع تجنب آخر 5 شركات
@@ -275,10 +282,21 @@ async function callAddDailyRewardIfExists() {
 <!-- 08 - تشغيل دفعة الإعلانات (core runBatch) -->
 <script>
 // هذا كود: تنفيذ دفعة إعلانية واحدة (اختيار روابط، فتحها متتابعاً، إدارة الأوقات)
+
+
+
+  
 async function runBatch() {
   const hour = new Date().getHours();
   const size = (hour >= 1 && hour < 6) ? 3 : randomInt(10, 15);
 
+  if (window.__adRunner.isRunning) {
+  console.warn('Runner already active — ignoring new start');
+  return; // أو return Promise.resolve(0) لو كانت دالة async ترجع قيمة
+}
+window.__adRunner.isRunning = true;
+
+  
   // جمع روابط الدفعة
   const urls = [];
   for (let j = 0; j < size; j++) {
@@ -332,6 +350,9 @@ async function runBatch() {
 saveWaitEndTime(waitTime);
 
   window.location.href = 'redirect.html';
+  return;
+
+  window.__adRunner.isRunning = false;
   
   return waitTime;
 }
@@ -517,6 +538,7 @@ async function takeLongBan() {
   restEvery = randomInt(4, 8);
   // إعادة توجيه لعرض العداد
   window.location.href = 'redirect.html';
+  return;
 }
 </script>
 <!-- A9 - قرار متى يؤخذ الحظر الطويل -->
@@ -535,69 +557,66 @@ function shouldTakeLongBan(batchCountParam) {
 // هذا كود: يعيد توجيه المستخدم لصفحة النهاية (يمكنك تغيير الرابط)
 function redirectToEndPage() {
   window.location.href = 'redirect.html';
+  return;
 }
 </script>
 
 <!-- ========== الكود الأصلي القابل للتشغيل (mainAdFlow) - يجب أن يكون آخر شيء في الملف ========== -->
+
 <script>
 (async function mainAdFlow() {
-  const urls = getAdUrls();
+  if (window.__adRunner?.isRunning) {
+    console.warn('mainAdFlow already running, abort.');
+    return;
+  }
+  window.__adRunner = window.__adRunner || {};
+  window.__adRunner.isRunning = true;
+  let __adsOpenedThisRun = 0;
 
-  // نعتبر كل 15 حلقة كـ 15 إعلان داخل دفعة واحدة كما في كودك الأصلي
-  // ملاحظة: هنا i يمثل ترتيب الإعلان داخل الدفعة وليس دفعات متتالية
-  for (let i = 0; i < 15; i++) {
-    const ad = pickRandomAd(urls);
-    if (!ad) continue;
+  try {
+    const urls = getAdUrls();
+    for (let i = 0; i < 15; i++) {
+      const ad = pickRandomAd(urls);
+      if (!ad) continue;
+      const win = openAd(ad.url);
+      await handleRewards();
+      await waitInsideAd();
+      if (i < 15 - 1) await waitBetweenAds();
 
-    // افتح الإعلان وخزن المرجع
-    const win = openAd(ad.url);
-
-    // استدعاءات المكافآت
-    await handleRewards();
-
-    // انتظر داخل الإعلان (10-17s) ثم اغلق النافذة إن أمكن
-    await waitInsideAd();
-
-    // استراحة قصيرة بين الإعلانات داخل نفس الدفعة (0-4s)
-    if (i < 15 - 1) {
-      await waitBetweenAds();
+      __adsOpenedThisRun++;
+      if (__adsOpenedThisRun >= 500) { // حاجز أمان بقيمة كبيرة
+        console.error('Watchdog stop: opened too many ads');
+        break;
+      }
     }
+
+    // بعد انتهاء الدفعة
+    batchCount++;
+    let waitTime = randomMs(3 * 60, 8 * 60);
+    const hour = new Date().getHours();
+
+    if (hour >= 1 && hour < 6) {
+      waitTime += 50 * 60 * 1000;
+    } else if (shouldTakeLongBan(batchCount)) {
+      waitTime += getBanPeriod();
+      batchCount = 0;
+      banEvery = randomInt(2,5);
+      restEvery = randomInt(4,8);
+    } else if (shouldTakeShortBreak(batchCount)) {
+      waitTime += getRestPeriod();
+      restEvery = randomInt(4,8);
+    }
+
+    saveWaitEndTime(waitTime);
+    window.location.href = 'redirect.html';
+    return;
+  } catch (e) {
+    console.error('mainAdFlow error', e);
+  } finally {
+    window.__adRunner.isRunning = false;
   }
-
-  // **الآن انتهت "الدفعة" كاملة** -> نزيد batchCount مرة واحدة هنا فقط
-  batchCount++;
-
-  // حساب وقت الانتظار الإلزامي بين الدفعات: راحة أساسية 3-8 دقائق
-  let waitTime = randomMs(3 * 60, 8 * 60);
-
-  const hour = new Date().getHours();
-
-  // الآن نضيف أي فترات إضافية (ليل / حظر طويل / راحة قصيرة) — نضيفها إلى waitTime
-  if (hour >= 1 && hour < 6) {
-    // وقت الليل (خاصة): 50 دقيقة تضاف
-    waitTime += 50 * 60 * 1000;
-  } else if (shouldTakeLongBan(batchCount)) {
-    // حظر طويل
-    waitTime += getBanPeriod();
-    // إعادة ضبط بعد الحظر
-    batchCount = 0;
-    banEvery = randomInt(2, 5);
-    restEvery = randomInt(4, 8);
-  } else if (shouldTakeShortBreak(batchCount)) {
-    // راحة قصيرة إضافية (مثلاً 2-3 دقائق كما في getRestPeriod)
-    waitTime += getRestPeriod();
-    restEvery = randomInt(4, 8);
-  }
-
-  // خزن وقت الانتهاء في localStorage لكي تظهر الصفحة redirect.html العداد الصحيح
-  const endTime = Date.now() + waitTime;
-  localStorage.setItem('waitEndTime', String(endTime));
-
-  // إعادة توجيه المستخدم لصفحة العرض (redirect.html) حيث سيُعرض العداد
-  window.location.href = 'redirect.html';
 })();
 </script>
-
 
 
 
