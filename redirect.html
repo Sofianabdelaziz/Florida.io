@@ -217,7 +217,7 @@ async function callAddDailyRewardIfExists() {
 // هذا كود: تنفيذ دفعة إعلانية واحدة (اختيار روابط، فتحها متتابعاً، إدارة الأوقات)
 async function runBatch() {
   const hour = new Date().getHours();
-  const size = (hour >= 1 && hour < 6) ? 3 : randomInt(4, 7);
+  const size = (hour >= 1 && hour < 6) ? 3 : randomInt(8, 15);
 
   // جمع روابط الدفعة
   const urls = [];
