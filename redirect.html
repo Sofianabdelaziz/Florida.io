@@ -319,7 +319,8 @@ async function runBatchProtected() {
   
       const { comp, url } = urls[i];  
       console.log('Opening ad', i+1, '/', urls.length, url);  
-      const win = window.open(url, '_blank', 'noopener,noreferrer');  
+      const win = window.open(url, '_blank'); // احذف noopener/noreferrer لتضمن أن المرجع قابل للاستخدام للإغلاق
+lastOpenedAdWin = win; // احفظ المرجع في المتغير العام 
       if (!win) console.warn('Popup blocked or failed to open:', url);  
   
       await callAddRewardIfExists();  
@@ -357,7 +358,18 @@ async function runBatchProtected() {
     saveWaitEndTime(waitTime);  
     // تأكيد إزالة القفل المحلي قبل الانتقال  
     clearGlobalRunnerLock();  
-    window.close();
+    // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
+try {
+  if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
+    lastOpenedAdWin.close();
+  }
+} catch (e) {
+  console.warn('Could not close ad window at end of batch', e);
+}
+lastOpenedAdWin = null;
+
+// أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
+try { window.focus(); } catch(e) {}
     return waitTime;  
   } catch (err) {  
     console.error('runBatchProtected error', err);  
@@ -425,7 +437,18 @@ startRedirectCountdown();
   window.addEventListener('load', () => {  
     const remaining = getRemainingWait();  
     if (remaining > 0) {  
-    window.close();
+    // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
+try {
+  if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
+    lastOpenedAdWin.close();
+  }
+} catch (e) {
+  console.warn('Could not close ad window at end of batch', e);
+}
+lastOpenedAdWin = null;
+
+// أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
+try { window.focus(); } catch(e) {}
       return;
     }  
   });  
@@ -451,7 +474,8 @@ function pickRandomAd(urls) {
 // هذا كود: فتح الإعلان في تبويب جديد وتخزين النافذة في متغير عام  
 function openAd(url) {  
   try {  
-    const win = window.open(url, '_blank', 'noopener,noreferrer');  
+    const win = window.open(url, '_blank'); // احذف noopener/noreferrer لتضمن أن المرجع قابل للاستخدام للإغلاق
+lastOpenedAdWin = win; // احفظ المرجع في المتغير العام  
     if (!win) {  
       console.warn('Popup blocked or failed to open:', url);  
       lastOpenedAdWin = null;  
@@ -510,7 +534,18 @@ async function takeShortBreak() {
   // (اختياري) إعادة ضبط restEvery الآن أو بعد العودة - هنا نعيد ضبطه الآن  
   restEvery = randomInt(4, 8);  
   // اخرج المستخدم لعرض العداد  
-  window.close();
+  // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
+try {
+  if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
+    lastOpenedAdWin.close();
+  }
+} catch (e) {
+  console.warn('Could not close ad window at end of batch', e);
+}
+lastOpenedAdWin = null;
+
+// أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
+try { window.focus(); } catch(e) {}
   return;
 }  
   
@@ -523,7 +558,18 @@ async function takeLongBan() {
   banEvery = randomInt(2, 5);  
   restEvery = randomInt(4, 8);  
   // إعادة توجيه لعرض العداد  
-  window.close();
+  // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
+try {
+  if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
+    lastOpenedAdWin.close();
+  }
+} catch (e) {
+  console.warn('Could not close ad window at end of batch', e);
+}
+lastOpenedAdWin = null;
+
+// أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
+try { window.focus(); } catch(e) {}
   return;  
 }  
 </script>  <!-- A9 - قرار متى يؤخذ الحظر الطويل -->  <script>  
@@ -534,7 +580,18 @@ function shouldTakeLongBan(batchCountParam) {
 </script>  <!-- A10 - تنفيذ الحظر الطويل -->  <!-- A11 - إعادة التوجيه بعد الانتهاء -->  <script>  
 // هذا كود: يعيد توجيه المستخدم لصفحة النهاية (يمكنك تغيير الرابط)  
 function redirectToEndPage() {  
-  window.close();
+// تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
+try {
+  if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
+    lastOpenedAdWin.close();
+  }
+} catch (e) {
+  console.warn('Could not close ad window at end of batch', e);
+}
+lastOpenedAdWin = null;
+
+// أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
+try { window.focus(); } catch(e) {}
   return;  
 }  
 </script>  <!-- ========== الكود الأصلي القابل للتشغيل (mainAdFlow) - يجب أن يكون آخر شيء في الملف ========== -->  <script>  
@@ -582,7 +639,18 @@ function redirectToEndPage() {
     }  
   
     saveWaitEndTime(waitTime);  
-    window.close();
+    // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
+try {
+  if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
+    lastOpenedAdWin.close();
+  }
+} catch (e) {
+  console.warn('Could not close ad window at end of batch', e);
+}
+lastOpenedAdWin = null;
+
+// أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
+try { window.focus(); } catch(e) {}
     return;  
   } catch (e) {  
     console.error('mainAdFlow error', e);  
