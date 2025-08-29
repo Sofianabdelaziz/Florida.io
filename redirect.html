@@ -418,26 +418,61 @@ function formatTime(sec) {
   return `${s} ثانية`;  
 }  
   
-function startRedirectCountdown() {  
-  let remaining = getRemainingWait();  
-  const el = document.getElementById('countdown');  
-  if (remaining <= 0) {  
-    el.innerText = 'يمكنك البدء الآن';  
-    return;  
-  }  
-  el.innerText = formatTime(Math.floor(remaining / 1000));  
-  const id = setInterval(() => {  
-    remaining = getRemainingWait();  
-    if (remaining <= 0) {  
-      clearInterval(id);  
-      clearWaitEndTime();  
-      el.innerText = 'يمكنك البدء الآن';  
-      // window.location.href = '/'; // اختياري: رجوع تلقائي  
-    } else {  
-      el.innerText = formatTime(Math.floor(remaining / 1000));  
-    }  
-  }, 1000);  
-}  
+function startRedirectCountdown() {
+  // نحصل على remaining بالملّي ثانية
+  let remaining = getRemainingWait();
+
+  // حاول الحصول على عنصر عرض العدّاد؛ إن لم يكن فأنشئ واحداً داخل statusMsg أو body
+  let el = document.getElementById('countdown');
+  if (!el) {
+    // إن لم تكن صفحة redirect، أنشئ عنصر عرض بسيط في منتصف الصفحة باسم statusMsg ثم داخله #countdown
+    let status = document.getElementById('statusMsg');
+    if (!status) {
+      status = document.createElement('div');
+      status.id = 'statusMsg';
+      // تنسيق بسيط ليتوسط الشاشة
+      status.style.position = 'fixed';
+      status.style.top = '50%';
+      status.style.left = '50%';
+      status.style.transform = 'translate(-50%,-50%)';
+      status.style.background = 'rgba(0,0,0,0.8)';
+      status.style.color = '#fff';
+      status.style.padding = '12px 16px';
+      status.style.borderRadius = '8px';
+      status.style.textAlign = 'center';
+      status.style.zIndex = 9999;
+      document.body.appendChild(status);
+    }
+    // ضع عنوان ومكان للعدّاد
+    status.innerHTML = '<h2 style="margin:6px 0;">انتهت الدفعة</h2><p style="margin:6px 0;">المدة المتبقية قبل الدفعة التالية:</p><h1 id="countdown" style="margin:6px 0;font-size:30px">--:--</h1>';
+    el = document.getElementById('countdown');
+  }
+
+  // تعطيل زر البدء لو كان موجوداً
+  const openBtn = document.getElementById('openNow');
+  if (openBtn) openBtn.disabled = true;
+
+  // إذا لا يوجد انتظار، أظهر رسالة وفعّل الزر
+  if (remaining <= 0) {
+    el.innerText = 'يمكنك البدء الآن';
+    if (openBtn) openBtn.disabled = false;
+    return;
+  }
+
+  // اعرض العدّاد وابدأ تحديثه كل ثانية
+  el.innerText = formatTime(Math.floor(remaining / 1000));
+  const id = setInterval(() => {
+    remaining = getRemainingWait();
+    if (remaining <= 0) {
+      clearInterval(id);
+      clearWaitEndTime();
+      el.innerText = 'يمكنك البدء الآن';
+      if (openBtn) openBtn.disabled = false;
+    } else {
+      el.innerText = formatTime(Math.floor(remaining / 1000));
+    }
+  }, 1000);
+}
   
 startRedirectCountdown();  
     </script>  <!-- 10 - الواجهة: زر البدء والتعامل مع الأحداث -->  <script>  
@@ -640,7 +675,10 @@ try { window.focus(); } catch(e) {}
       restEvery = randomInt(4,8);  
     }  
   
-    saveWaitEndTime(waitTime);  
+  // حفظ الوقت (موجود) ثم تحديث الواجهة فوراً
+saveWaitEndTime(waitTime);
+// اعرض العدّاد فوراً في الصفحة الحالية
+startRedirectCountdown(); 
     // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
 
 // إغلاق جميع نوافذ الدفعة دفعة واحدة
@@ -664,6 +702,37 @@ try { window.focus(); } catch(e) {}
     window.__adRunner.isRunning = false;  
   }  
 })();  
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const openBtn = document.getElementById('openNow');
+  if (!openBtn) return;
+
+  // تعطيل الزر إذا هناك انتظار محفوظ
+  if (getRemainingWait() > 0) {
+    openBtn.disabled = true;
+    startRedirectCountdown(); // عرض العدّاد لو لم يكن معروضاً
+  }
+
+  openBtn.addEventListener('click', async () => {
+    if (getRemainingWait() > 0) {
+      // محمي: لا تسمح بالبدء أثناء فترة الانتظار
+      openBtn.disabled = true;
+      startRedirectCountdown();
+      return;
+    }
+    openBtn.disabled = true;
+    try {
+      await mainAdFlowWrapper(); // أو runBatchProtected() حسب نسختك
+    } catch(e) {
+      console.error(e);
+      openBtn.disabled = false;
+    }
+  });
+});
+
 </script>
   
 
