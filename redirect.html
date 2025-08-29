@@ -194,7 +194,10 @@ let batchCount = 0;                       // متغير حالة عام
 let banEvery = randomInt(2, 5);           // بعد كم دفعة يحصل الحظر الطويل  
 const adHistory = [];  
 let countdownActive = false;  
-let restEvery = randomInt(4, 8);          // بعد كم دفعات تظهر الراحة القصيرة (4-8)  
+let restEvery = randomInt(4, 8); 
+// متغير لمتابعة كل نوافذ الإعلانات المفتوحة خلال الدفعة
+let openedAdWins = [];
+  // بعد كم دفعات تظهر الراحة القصيرة (4-8)  
   
 // متغير لمتابعة آخر نافذة إعلان مفتوحة (يستخدمه openAd/waitInsideAd)  
 let lastOpenedAdWin = null;  
@@ -359,13 +362,17 @@ lastOpenedAdWin = win; // احفظ المرجع في المتغير العام
     // تأكيد إزالة القفل المحلي قبل الانتقال  
     clearGlobalRunnerLock();  
     // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
+// إغلاق جميع نوافذ الدفعة دفعة واحدة
 try {
-  if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
-    lastOpenedAdWin.close();
+  for (const w of openedAdWins) {
+    if (w && !w.closed) {
+      try { w.close(); } catch(e) { console.warn('could not close a win', e); }
+    }
   }
-} catch (e) {
-  console.warn('Could not close ad window at end of batch', e);
+} catch(e) {
+  console.warn('Error closing openedAdWins', e);
 }
+openedAdWins = [];
 lastOpenedAdWin = null;
 
 // أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
@@ -470,51 +477,46 @@ function pickRandomAd(urls) {
   if (!Array.isArray(urls) || urls.length === 0) return null;  
   return urls[Math.floor(Math.random() * urls.length)];  
 }  
-</script>  <!-- A3 - دالة فتح الإعلان -->  <script>  
-// هذا كود: فتح الإعلان في تبويب جديد وتخزين النافذة في متغير عام  
-function openAd(url) {  
-  try {  
-    const win = window.open(url, '_blank'); // احذف noopener/noreferrer لتضمن أن المرجع قابل للاستخدام للإغلاق
-lastOpenedAdWin = win; // احفظ المرجع في المتغير العام  
-    if (!win) {  
-      console.warn('Popup blocked or failed to open:', url);  
-      lastOpenedAdWin = null;  
-      return null;  
-    }  
-    lastOpenedAdWin = win;  
-    return win;  
-  } catch (e) {  
-    console.error('openAd error', e);  
-    lastOpenedAdWin = null;  
-    return null;  
-  }  
-}  
-</script>  <!-- A4 - تغليف استدعاءات المكافآت (يجمع المكالمات الثلاثة) -->  <script>  
+</script>  
+<!-- A3 - دالة فتح الإعلان --> 
+<script>
+function openAd(url) {
+  try {
+    // احذف noopener/noreferrer إذا أردت القدرة على إغلاق النافذة برمجياً
+    const win = window.open(url, '_blank');
+    if (!win) {
+      console.warn('Popup blocked or failed to open:', url);
+      return null;
+    }
+    lastOpenedAdWin = win;
+    openedAdWins.push(win); // خزّن المرجع حتى نغلقه لاحقًا
+    return win;
+  } catch (e) {
+    console.error('openAd error', e);
+    lastOpenedAdWin = null;
+    return null;
+  }
+}
+</script>
+<!-- A4 - تغليف استدعاءات المكافآت (يجمع المكالمات الثلاثة) -->  
+<script>  
 // هذا كود: يطالع دوال المكافآت (لو متوفرة) بطريقة آمنة  
 async function handleRewards() {  
   await callAddRewardIfExists();  
   await callAddWatchedAdIfExists();  
   await callAddDailyRewardIfExists();  
 }  
-</script>  <!-- A5 - انتظار داخل الإعلان: يبقي التبويب مفتوح 10-17 ثانية ثم يغلقه -->  <script>  
-// هذا كود: يبقي الإعلان مفتوحًا مدة عشوائية (10-17s) ثم يغلق التبويب الأخير المفتوح  
-async function waitInsideAd() {  
-  // مدة العرض الفعلية (بملّي ثانية)  
-  const stayMs = randomMs(10, 17);  
-  await new Promise(res => setTimeout(res, stayMs));  
-  
-  // محاولة إغلاق النافذة إن كانت موجودة  
-  try {  
-    if (lastOpenedAdWin && !lastOpenedAdWin.closed) {  
-      lastOpenedAdWin.close();  
-      lastOpenedAdWin = null;  
-    }  
-  } catch (e) {  
-    // لا توقف التنفيذ لو حصل خطأ cross-origin أو منع  
-    console.warn('Error closing ad window', e);  
-  }  
-}  
-</script>  <!-- A6 - الانتظار بين الإعلانات: استراحة قصيرة 0-4 ثواني -->  <script>  
+</script> 
+<!-- A5 - انتظار داخل الإعلان: يبقي التبويب مفتوح 10-17 ثانية ثم يغلقه --> 
+<script>
+async function waitInsideAd() {
+  const stayMs = randomMs(10, 17);
+  await new Promise(res => setTimeout(res, stayMs));
+  // لا نغلق النافذة هنا — نغلق كل النوافذ بعد انتهاء الدفعة
+}
+</script>
+<!-- A6 - الانتظار بين الإعلانات: استراحة قصيرة 0-4 ثواني -->  
+<script>  
 // هذا كود: استراحة قصيرة بين الإعلانات (0-4s)  
 function waitBetweenAds() {  
   return new Promise(res => setTimeout(res, randomMs(0, 4)));  
@@ -640,15 +642,19 @@ try { window.focus(); } catch(e) {}
   
     saveWaitEndTime(waitTime);  
     // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
-try {
-  if (lastOpenedAdWin && !lastOpenedAdWin.closed) {
-    lastOpenedAdWin.close();
-  }
-} catch (e) {
-  console.warn('Could not close ad window at end of batch', e);
-}
-lastOpenedAdWin = null;
 
+// إغلاق جميع نوافذ الدفعة دفعة واحدة
+try {
+  for (const w of openedAdWins) {
+    if (w && !w.closed) {
+      try { w.close(); } catch(e) { console.warn('could not close a win', e); }
+    }
+  }
+} catch(e) {
+  console.warn('Error closing openedAdWins', e);
+}
+openedAdWins = [];
+lastOpenedAdWin = null;
 // أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
 try { window.focus(); } catch(e) {}
     return;  
