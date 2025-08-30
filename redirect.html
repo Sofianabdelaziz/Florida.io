@@ -291,7 +291,6 @@ function isGlobalRunnerLocked() {
   
 // RunBatch محصّن ومصحح
   
-<script>
 async function runBatchProtected() {
   if (window.__adRunner?.isRunning) {
     console.warn('Runner already active in this tab — aborting.');
