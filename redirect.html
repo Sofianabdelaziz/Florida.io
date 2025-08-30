@@ -324,31 +324,60 @@ async function runBatchProtected() {
       if (typeof registerAd === 'function') registerAd(comp);  
       urls.push({ comp, url });  
     }  
-  
-    for (let i = 0; i < urls.length; i++) {  
-      if (adsOpened++ > MAX_ADS) {  
-        console.error('Watchdog abort: opened too many ads');  
-        break;  
-      }  
-  
-      const { comp, url } = urls[i];  
-      console.log('Opening ad', i+1, '/', urls.length, url);  
-      const win = window.open(url, '_blank'); // احذف noopener/noreferrer لتضمن أن المرجع قابل للاستخدام للإغلاق
-lastOpenedAdWin = win; // احفظ المرجع في المتغير العام 
-      if (!win) console.warn('Popup blocked or failed to open:', url);  
-  
-      await callAddRewardIfExists();  
-      await callAddWatchedAdIfExists();  
-      await callAddDailyRewardIfExists();  
-  
-      await new Promise(r => setTimeout(r, randomMs(10, 17)));  
-  
-      try { if (win && !win.closed) win.close(); } catch(e) { console.warn('close error', e); }  
-  
-      if (i < urls.length - 1) await new Promise(r => setTimeout(r, randomMs(0, 4)));  
-      // تمديد القفل عبر التبويبات لمدّة قصيرة أثناء العمل  
-      setGlobalRunnerLock(30 * 1000);  
-    }  
+  // قبل الحلقة تأكد أنك تعرف متغير adWin واحد:
+let adWin = null;
+
+// ثم هذه الحلقة (تضعها مكان الحلقة القديمة)
+for (let i = 0; i < urls.length; i++) {
+  if (adsOpened++ > MAX_ADS) {
+    console.error('Watchdog abort: opened too many ads');
+    break;
+  }
+
+  const { comp, url } = urls[i];
+  console.log('Opening ad', i+1, '/', urls.length, url);
+
+  // إذا النوافذ مغلقة أو غير موجودة افتح واحدة جديدة باسم 'ad_worker'
+  if (!adWin || adWin.closed) {
+    adWin = window.open(url, 'ad_worker');
+    if (!adWin) {
+      console.warn('Popup blocked or failed to open:', url);
+    } else {
+      lastOpenedAdWin = adWin;
+    }
+  } else {
+    // نعيد توجيه نفس التبويب المفتوح للرابط الجديد
+    try {
+      adWin.location.href = url;
+    } catch (e) {
+      // إذا حصل خطأ (مثلاً cross-origin أو أن النافذة لم تعد صالحة) افتح نافذة جديدة
+      adWin = window.open(url, 'ad_worker');
+      if (!adWin) console.warn('Popup blocked or failed to open on fallback:', url);
+      else lastOpenedAdWin = adWin;
+    }
+  }
+
+  // نركز التبويب الإعلاني (محاولة فقط)
+  try { if (adWin) adWin.focus(); } catch(e) {}
+
+  // استدعاءات المكافآت
+  await callAddRewardIfExists();
+  await callAddWatchedAdIfExists();
+  await callAddDailyRewardIfExists();
+
+  // ننتظر مدة العرض داخل نفس التبويب (10-17s)
+  await new Promise(r => setTimeout(r, randomMs(10, 17)));
+
+  // لا نغلق adWin هنا — نتابع ونغيّر location للإعلان التالي
+  // إن أردت أن تُغلق بعد كل إعلان، فعِد هذا السطر، لكن حالياً نريد إبقاء التبويب
+  if (i < urls.length - 1) {
+    await new Promise(r => setTimeout(r, randomMs(0, 4)));
+  }
+
+  // جدّد القفل عبر التبويبات أثناء التشغيل
+  setGlobalRunnerLock(30 * 1000);
+}
+    
   
     // حساب الانتظار بين الدفعات (كما سبق)  
     batchCount++;  
@@ -373,17 +402,15 @@ lastOpenedAdWin = win; // احفظ المرجع في المتغير العام
     // تأكيد إزالة القفل المحلي قبل الانتقال  
     clearGlobalRunnerLock();  
     // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
-// إغلاق جميع نوافذ الدفعة دفعة واحدة
+// إغلاق تبويب الدفعة مرة واحدة بعد انتهاء الدفعة
 try {
-  for (const w of openedAdWins) {
-    if (w && !w.closed) {
-      try { w.close(); } catch(e) { console.warn('could not close a win', e); }
-    }
+  if (adWin && !adWin.closed) {
+    adWin.close();
   }
 } catch(e) {
-  console.warn('Error closing openedAdWins', e);
+  console.warn('Could not close final adWin', e);
 }
-openedAdWins = [];
+adWin = null;
 lastOpenedAdWin = null;
 
 // أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
@@ -537,14 +564,14 @@ function pickRandomAd() {
 <script>
 function openAd(url) {
   try {
-    // احذف noopener/noreferrer إذا أردت القدرة على إغلاق النافذة برمجياً
-    const win = window.open(url, '_blank');
+    // نفتح التبويب باسم ثابت 'ad_worker' بحيث يُعاد استخدامه بدل فتح تبويبات جديدة
+    const win = window.open(url, 'ad_worker');
     if (!win) {
       console.warn('Popup blocked or failed to open:', url);
       return null;
     }
+    // خزّن المرجع ليمكن إغلاقه في نهاية الدفعة
     lastOpenedAdWin = win;
-    openedAdWins.push(win); // خزّن المرجع حتى نغلقه لاحقًا
     return win;
   } catch (e) {
     console.error('openAd error', e);
