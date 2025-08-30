@@ -1285,7 +1285,7 @@ firebase.database().ref("users/" + uid + "/withdraw").once("value")
 
             // جلب القيمة من المسار المناسب في فايرباس
             firebase.database()
-            .ref(`users/${uid}/Adswatch`) // غيّر المسار حسب مكان التخزين عندك
+            .ref(`users/${uid}/daywacted`) // غيّر المسار حسب مكان التخزين عندك
             .once('value')
             .then(snap => {
                 const value = snap.val();
