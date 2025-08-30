@@ -212,12 +212,12 @@ let lastOpenedAdWin = null;
 // هذا كود: دوال تعيد فترات الراحة القصيرة والحظر الطويل  
 function getRestPeriod() {  
   // راحة قصيرة: 2-3 دقائق  
-  return randomInt(2, 3) * 60 * 1000;  
+  return randomInt(10, 17) * 60 * 1000;  
 }  
   
 function getBanPeriod() {  
   // حظر طويل: بين 60 و120 دقيقة  
-  const min = Math.floor(1 * 60), max = Math.floor(2 * 60);  
+  const min = Math.floor(3 * 60), max = Math.floor(4 * 60);  
   return randomInt(min, max) * 60 * 1000;  
 }  
 </script>  
