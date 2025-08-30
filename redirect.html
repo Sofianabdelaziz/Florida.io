@@ -291,183 +291,122 @@ function isGlobalRunnerLocked() {
   
 // RunBatch محصّن ومصحح
   
-async function runBatchProtected() {
-  if (window.__adRunner?.isRunning) {
-    console.warn('Runner already active in this tab — aborting.');
-    return;
-  }
-  if (isGlobalRunnerLocked()) {
-    console.warn('Runner locked by another tab — aborting.');
-    return;
-  }
-
-  window.__adRunner = window.__adRunner || {};
-  // إذا كان هناك مؤقت سابق لإعادة التشغيل أوقفه لتفادي تشغيلين متداخلين
-  if (window.__adRunner.nextTimer) {
-    clearTimeout(window.__adRunner.nextTimer);
-    window.__adRunner.nextTimer = null;
-  }
-
-  window.__adRunner.isRunning = true;
-  // lock across tabs for 60s (يُجدَّد لاحقًا أثناء التشغيل)
-  setGlobalRunnerLock(60 * 1000);
-
-  let adsOpened = 0;
-  const MAX_ADS = 15;
-
-  // سنستخدم متغير adWin واحد لإعادة توجيهه لكل إعلان
-  let adWin = null;
-
-  try {
-    const hour = new Date().getHours();
-    const size = (hour >= 1 && hour < 6) ? 3 : 15;
-
-    console.log('runBatchProtected START, size=', size, 'hour=', hour);
-
-    // جمع الروابط للدفعة
-    const urls = [];
-    for (let j = 0; j < size; j++) {
-      let comp = getRandomCompany();
-      if (typeof canShowAd === 'function' && !canShowAd(comp)) { j--; continue; }
-      const urlList = companies[comp];
-      const url = urlList[randomInt(0, urlList.length - 1)];
-      if (typeof registerAd === 'function') registerAd(comp);
-      urls.push({ comp, url });
-    }
-
-    // حلقة عرض الإعلانات — نعيد توجيه نفس التبويب باسم 'ad_worker'
-    for (let i = 0; i < urls.length; i++) {
-      if (adsOpened++ > MAX_ADS) {
-        console.error('Watchdog abort: opened too many ads');
-        break;
-      }
-
-      const { comp, url } = urls[i];
-      console.log('Opening ad', i + 1, '/', urls.length, url);
-
-      // افتح تبويب باسم ثابت أو أعد توجيهه إن كان مفتوحاً
-      try {
-        if (!adWin || adWin.closed) {
-          adWin = window.open(url, 'ad_worker'); // اسم ثابت يضمن إعادة الاستخدام
-          if (!adWin) {
-            console.warn('Popup blocked or failed to open:', url);
-            adWin = null;
-          } else {
-            lastOpenedAdWin = adWin;
-            openedAdWins.push(adWin);
-          }
-        } else {
-          // حاول إعادة توجيه التبويب المفتوح للرابط الجديد
-          try {
-            adWin.location.href = url;
-            lastOpenedAdWin = adWin;
-          } catch (e) {
-            // إذا فشل (نادر) افتح تبويب جديد كنسخة احتياطية
-            adWin = window.open(url, 'ad_worker');
-            if (!adWin) console.warn('Popup blocked or failed to open on fallback:', url);
-            else {
-              lastOpenedAdWin = adWin;
-              openedAdWins.push(adWin);
-            }
-          }
-        }
-      } catch (openErr) {
-        console.warn('Error opening/adapting adWin', openErr);
-      }
-
-      // حاول ترك التركيز للتبويب الإعلاني (محاولة فقط)
-      try { if (adWin) adWin.focus(); } catch (e) {}
-
-      // استدعاءات المكافآت إن وُجدت
-      await callAddRewardIfExists();
-      await callAddWatchedAdIfExists();
-      await callAddDailyRewardIfExists();
-
-      // إبقاء الإعلان مفتوحاً بين 10 و 17 ثانية
-      await new Promise(r => setTimeout(r, randomMs(10, 17)));
-
-      // لا نغلق التبويب هنا — نعيد توجيهه للإعلان التالي أو نغلقه عند نهاية الدفعة
-
-      // استراحة قصيرة بين الإعلانات داخل الدفعة
-      if (i < urls.length - 1) {
-        await new Promise(r => setTimeout(r, randomMs(0, 4)));
-      }
-
-      // جدّد القفل عبر التبويبات أثناء التشغيل
-      setGlobalRunnerLock(30 * 1000);
-    }
-
-    // نهاية الدفعة: حساب الانتظار بين الدفعات
-    batchCount++;
-    let waitTime = randomMs(3 * 60, 8 * 60);
-    if (hour >= 1 && hour < 6) {
-      waitTime += 50 * 60 * 1000;
-    } else if (batchCount >= banEvery) {
-      waitTime += getBanPeriod();
-      batchCount = 0;
-      banEvery = randomInt(2, 5);
-      restEvery = randomInt(4, 8);
-    } else if (batchCount % restEvery === 0) {
-      waitTime += getRestPeriod();
-      restEvery = randomInt(4, 8);
-    } else {
-      waitTime += getRestPeriod();
-      restEvery = randomInt(4, 8);
-    }
-
-    // حفظ وقت الانتظار للواجهة
-    saveWaitEndTime(waitTime);
-
-    // تأكد من إغلاق تبويب الدفعة مرة واحدة بعد انتهاء الدفعة
-    try {
-      if (adWin && !adWin.closed) {
-        adWin.close();
-      }
-    } catch (e) {
-      console.warn('Could not close final adWin', e);
-    }
-    adWin = null;
-    lastOpenedAdWin = null;
-
-    // أعد التركيز إلى الصفحة الأم (محاولة فقط)
-    try { window.focus(); } catch (e) {}
-
-    // عرض العدّاد فوراً (تأكد أن startRedirectCountdown متاحة)
-    try { startRedirectCountdown(); } catch (e) { /* لا مشكلة إن لم تكن موجودة */ }
-
-    // جدولة دفعة جديدة تلقائياً بعد انتهاء waitTime (بدون انتظار 5-6s)
-    // نحفظ المؤقت في window.__adRunner.nextTimer حتى نتمكن من إلغائه إن لزم
-    if (window.__adRunner.nextTimer) {
-      clearTimeout(window.__adRunner.nextTimer);
-      window.__adRunner.nextTimer = null;
-    }
-    window.__adRunner.nextTimer = setTimeout(() => {
-      // تأكد عدم تشغيل متماثل إذا تبقى قفل أو علم
-      if (!isGlobalRunnerLocked() && !window.__adRunner?.isRunning) {
-        runBatchProtected();
-      } else {
-        // إذا كان القفل ما زال موجوداً فإننا نعيد المحاولة لاحقاً (دقيقة واحدة)
-        window.__adRunner.nextTimer = setTimeout(() => {
-          if (!window.__adRunner?.isRunning) runBatchProtected();
-        }, 60 * 1000);
-      }
-    }, waitTime);
-
-    // حرّر القفل المحلي الآن (حتى لو بقي المؤقت ينتظر)
-    clearGlobalRunnerLock();
-
-    return waitTime;
-  } catch (err) {
-    console.error('runBatchProtected error', err);
-  } finally {
-    // تأكد أنّ العلم يعود false حتى لو حدث خطأ
-    window.__adRunner.isRunning = false;
-    // تأكد من إزالة القفل
-    clearGlobalRunnerLock();
-    console.log('runBatchProtected FINISHED');
-  }
-                              }
-</script>
+async function runBatchProtected() {    
+  if (window.__adRunner?.isRunning) {    
+    console.warn('Runner already active in this tab — aborting.');    
+    return;    
+  }    
+  if (isGlobalRunnerLocked()) {    
+    console.warn('Runner locked by another tab — aborting.');    
+    return;    
+  }    
+    
+  window.__adRunner = window.__adRunner || {};    
+  window.__adRunner.isRunning = true;    
+  // lock across tabs for 60s (يُجدَّد لاحقًا إذا استدعى الحاجة)    
+  setGlobalRunnerLock(60 * 1000);    
+    
+  let adsOpened = 0;    
+  const MAX_ADS = 15;    
+    
+  try {    
+    const hour = new Date().getHours();    
+    const size = (hour >= 1 && hour < 6) ? 3 : 15;    
+    
+    console.log('runBatchProtected START, size=', size, 'hour=', hour);    
+    
+    const urls = [];    
+    for (let j = 0; j < size; j++) {    
+      let comp = getRandomCompany();    
+      // إذا أردت إزالة منطق canShowAd: عيّن الشرط false أو علّق السطر    
+      if (typeof canShowAd === 'function' && !canShowAd(comp)) { j--; continue; }    
+      const urlList = companies[comp];    
+      const url = urlList[randomInt(0, urlList.length - 1)];    
+      if (typeof registerAd === 'function') registerAd(comp);    
+      urls.push({ comp, url });    
+    }    
+    
+    for (let i = 0; i < urls.length; i++) {    
+      if (adsOpened++ > MAX_ADS) {    
+        console.error('Watchdog abort: opened too many ads');    
+        break;    
+      }    
+    
+      const { comp, url } = urls[i];    
+      console.log('Opening ad', i+1, '/', urls.length, url);    
+      const win = window.open(url, '_blank'); // احذف noopener/noreferrer لتضمن أن المرجع قابل للاستخدام للإغلاق  
+lastOpenedAdWin = win; // احفظ المرجع في المتغير العام   
+      if (!win) console.warn('Popup blocked or failed to open:', url);    
+    
+      await callAddRewardIfExists();    
+      await callAddWatchedAdIfExists();    
+      await callAddDailyRewardIfExists();    
+    
+      await new Promise(r => setTimeout(r, randomMs(10, 17)));    
+    
+      try { if (win && !win.closed) win.close(); } catch(e) { console.warn('close error', e); }    
+    
+      if (i < urls.length - 1) await new Promise(r => setTimeout(r, randomMs(0, 4)));    
+      // تمديد القفل عبر التبويبات لمدّة قصيرة أثناء العمل    
+      setGlobalRunnerLock(30 * 1000);    
+    }    
+    
+    // حساب الانتظار بين الدفعات (كما سبق)    
+    batchCount++;    
+    let waitTime = randomMs(3 * 60, 8 * 60);    
+    if (hour >= 1 && hour < 6) {    
+      waitTime += 50 * 60 * 1000;    
+    } else if (batchCount >= banEvery) {    
+      waitTime += getBanPeriod();    
+      batchCount = 0;    
+      banEvery = randomInt(2, 5);    
+      restEvery = randomInt(4, 8);    
+    } else if (batchCount % restEvery === 0) {    
+      waitTime += getRestPeriod();    
+      restEvery = randomInt(4, 8);    
+    } else {    
+      waitTime += getRestPeriod();    
+      restEvery = randomInt(4, 8);    
+    }    
+    
+    // حفظ و إعادة توجيه    
+    saveWaitEndTime(waitTime);    
+    // تأكيد إزالة القفل المحلي قبل الانتقال    
+    clearGlobalRunnerLock();    
+    // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة  
+// إغلاق جميع نوافذ الدفعة دفعة واحدة  
+try {  
+  for (const w of openedAdWins) {  
+    if (w && !w.closed) {  
+      try { w.close(); } catch(e) { console.warn('could not close a win', e); }  
+    }  
+  }  
+} catch(e) {  
+  console.warn('Error closing openedAdWins', e);  
+}  
+openedAdWins = [];  
+lastOpenedAdWin = null;  
+  
+// أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)  
+try { window.focus(); } catch(e) {}  
+    return waitTime;    
+  } catch (err) {    
+    console.error('runBatchProtected error', err);    
+  } finally {    
+    // تأكد أنّ العلم يعود false حتى لو حدث خطأ    
+    window.__adRunner.isRunning = false;    
+    clearGlobalRunnerLock();    
+    console.log('runBatchProtected FINISHED');    
+  }    
+}    
+    
+// إذا تريد استخدام mainAdFlow يمكن استدعاؤه كمجرّد غلاف:    
+async function mainAdFlowWrapper() {    
+  return runBatchProtected();    
+}    
+ </script> 
+      
+    
   
 <!-- 09 - العد التنازلي وlocalStorage -->   
 <script>  
