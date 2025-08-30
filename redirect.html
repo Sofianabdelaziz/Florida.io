@@ -392,7 +392,9 @@ try { window.focus(); } catch(e) {}
 async function mainAdFlowWrapper() {  
   return runBatchProtected();  
 }  
-                  </script>  <!-- 09 - العد التنازلي وlocalStorage -->    <script>  
+                  </script>  
+<!-- 09 - العد التنازلي وlocalStorage -->   
+<script>  
   
 function getWaitEndTime() {  
   const r = localStorage.getItem(WAIT_KEY);  
@@ -475,7 +477,9 @@ function startRedirectCountdown() {
 }
   
 startRedirectCountdown();  
-    </script>  <!-- 10 - الواجهة: زر البدء والتعامل مع الأحداث -->  <script>  
+    </script> 
+<!-- 10 - الواجهة: زر البدء والتعامل مع الأحداث -->  
+<script>  
   window.addEventListener('load', () => {  
     const remaining = getRemainingWait();  
     if (remaining > 0) {  
@@ -494,7 +498,9 @@ try { window.focus(); } catch(e) {}
       return;
     }  
   });  
-</script>  <!-- A1 - دالة إرجاع قائمة الإعلانات (مصدر بسيط من companies) -->  <script>  
+</script> 
+<!-- A1 - دالة إرجاع قائمة الإعلانات (مصدر بسيط من companies) -->  
+<script>  
 // هذا كود: ترجمة كائن companies إلى مصفوفة من الكائنات {comp, url}  
 function getAdUrls() {  
   const arr = [];  
@@ -506,13 +512,16 @@ function getAdUrls() {
   }  
   return arr;  
 }  
-</script>  <!-- A2 - دالة اختيار إعلان عشوائي من المصفوفة -->  <script>  
-// هذا كود: يختار إعلانًا عشوائيًا من المصفوفة (يعادله بنفس البنية {comp, url})  
-function pickRandomAd(urls) {  
-  if (!Array.isArray(urls) || urls.length === 0) return null;  
-  return urls[Math.floor(Math.random() * urls.length)];  
-}  
 </script>  
+<!-- A2 - دالة اختيار إعلان عشوائي مع احترام آخر 5 شركات -->
+<script>
+function pickRandomAd() {
+  const comp = getRandomCompany();                  // ← هنا نستخدم آخر 5
+  const list = companies[comp] || [];
+  const url = list[randomInt(0, list.length - 1)];
+  return { comp, url };
+}
+</script>
 <!-- A3 - دالة فتح الإعلان --> 
 <script>
 function openAd(url) {
@@ -556,13 +565,17 @@ async function waitInsideAd() {
 function waitBetweenAds() {  
   return new Promise(res => setTimeout(res, randomMs(0, 4)));  
 }  
-</script>  <!-- A7 - قرار متى تؤخذ الراحة القصيرة -->  <script>  
+</script>  
+<!-- A7 - قرار متى تؤخذ الراحة القصيرة --> 
+<script>  
 // هذا كود: يحدد إن كان الوقت قد حان لأخذ راحة قصيرة (restEvery معرف في الوحدة العامة)  
 function shouldTakeShortBreak(batchCountParam) {  
   if (typeof restEvery === 'undefined' || restEvery <= 0) return false;  
   return (batchCountParam % restEvery) === 0;  
 }  
-</script>  <!-- A8 - تنفيذ الراحة القصيرة (استدعاء startCountdown والانتظار) -->  <script>  
+</script>  
+<!-- A8 - تنفيذ الراحة القصيرة (استدعاء startCountdown والانتظار) -->  
+<script>  
 // راحة قصيرة: حفظ وقت الراحة ثم إعادة توجيه لصفحة redirect.html  
 async function takeShortBreak() {  
   const waitTime = getRestPeriod(); // بالملّي ثانية  
@@ -609,12 +622,16 @@ lastOpenedAdWin = null;
 try { window.focus(); } catch(e) {}
   return;  
 }  
-</script>  <!-- A9 - قرار متى يؤخذ الحظر الطويل -->  <script>  
+</script>  
+<!-- A9 - قرار متى يؤخذ الحظر الطويل --> 
+<script>  
 // هذا كود: يحدد إن كان يجب تطبيق الحظر الطويل بناء على batchCount و banEvery  
 function shouldTakeLongBan(batchCountParam) {  
   return batchCountParam >= banEvery;  
 }  
-</script>  <!-- A10 - تنفيذ الحظر الطويل -->  <!-- A11 - إعادة التوجيه بعد الانتهاء -->  <script>  
+</script> 
+<!-- A10 - تنفيذ الحظر الطويل -->  <!-- A11 - إعادة التوجيه بعد الانتهاء -->
+<script>  
 // هذا كود: يعيد توجيه المستخدم لصفحة النهاية (يمكنك تغيير الرابط)  
 function redirectToEndPage() {  
 // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
@@ -631,7 +648,9 @@ lastOpenedAdWin = null;
 try { window.focus(); } catch(e) {}
   return;  
 }  
-</script>  <!-- ========== الكود الأصلي القابل للتشغيل (mainAdFlow) - يجب أن يكون آخر شيء في الملف ========== -->  <script>  
+</script> 
+<!-- ========== الكود الأصلي القابل للتشغيل (mainAdFlow) - يجب أن يكون آخر شيء في الملف ========== --> 
+<script>  
 (async function mainAdFlow() {  
   if (window.__adRunner?.isRunning) {  
     console.warn('mainAdFlow already running, abort.');  
@@ -642,9 +661,10 @@ try { window.focus(); } catch(e) {}
   let __adsOpenedThisRun = 0;  
   
   try {  
-    const urls = getAdUrls();  
     for (let i = 0; i < 15; i++) {  
-      const ad = pickRandomAd(urls);  
+      const ad = pickRandomAd();            // بدون urls
+const win = openAd(ad.url);
+if (win) registerAd(ad.comp);         // سجّل الشركة بعد نجاح الفتح 
       if (!ad) continue;  
       const win = openAd(ad.url);  
       await handleRewards();  
