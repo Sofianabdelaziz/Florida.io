@@ -674,30 +674,35 @@ try { window.focus(); } catch(e) {}
   window.__adRunner = window.__adRunner || {};  
   window.__adRunner.isRunning = true;  
   let __adsOpenedThisRun = 0;  
-  
+
   try {  
     for (let i = 0; i < 15; i++) {  
-      const ad = pickRandomAd();            // بدون urls
-const win = openAd(ad.url);
-if (win) registerAd(ad.comp);         // سجّل الشركة بعد نجاح الفتح 
+      const ad = pickRandomAd();            
       if (!ad) continue;  
+
       const win = openAd(ad.url);  
+      if (win) {  
+        registerAd(ad.comp);            // سجّل الشركة  
+        openedAdWins.push(win);         // أضف النافذة إلى القائمة  
+      }  
+
       await handleRewards();  
       await waitInsideAd();  
+
       if (i < 15 - 1) await waitBetweenAds();  
-  
+
       __adsOpenedThisRun++;  
-      if (__adsOpenedThisRun >= 500) { // حاجز أمان بقيمة كبيرة  
+      if (__adsOpenedThisRun >= 500) { // حاجز أمان  
         console.error('Watchdog stop: opened too many ads');  
         break;  
       }  
     }  
-  
-    // بعد انتهاء الدفعة  
+
+    // بعد انتهاء الدفعة
     batchCount++;  
     let waitTime = randomMs(3 * 60, 8 * 60);  
     const hour = new Date().getHours();  
-  
+
     if (hour >= 1 && hour < 6) {  
       waitTime += 50 * 60 * 1000;  
     } else if (shouldTakeLongBan(batchCount)) {  
@@ -709,34 +714,31 @@ if (win) registerAd(ad.comp);         // سجّل الشركة بعد نجاح �
       waitTime += getRestPeriod();  
       restEvery = randomInt(4,8);  
     }  
-  
-  // حفظ الوقت (موجود) ثم تحديث الواجهة فوراً
-saveWaitEndTime(waitTime);
-// اعرض العدّاد فوراً في الصفحة الحالية
-startRedirectCountdown(); 
-    // تأكد من إغلاق أي نافذة إعلان لا تزال مفتوحة
 
-// إغلاق جميع نوافذ الدفعة دفعة واحدة
-try {
-  for (const w of openedAdWins) {
-    if (w && !w.closed) {
-      try { w.close(); } catch(e) { console.warn('could not close a win', e); }
-    }
-  }
-} catch(e) {
-  console.warn('Error closing openedAdWins', e);
-}
-openedAdWins = [];
-lastOpenedAdWin = null;
-// أعد التركيز إلى الصفحة الأم (محاولة فقط، قد لا يعمل دائماً حسب المتصفح)
-try { window.focus(); } catch(e) {}
+    saveWaitEndTime(waitTime);  
+    startRedirectCountdown();  
+
+    // أغلق جميع النوافذ المفتوحة بعد انتهاء الدفعة
+    try {  
+      for (const w of openedAdWins) {  
+        if (w && !w.closed) {  
+          try { w.close(); } catch(e) { console.warn('could not close a win', e); }  
+        }  
+      }  
+    } catch(e) {  
+      console.warn('Error closing openedAdWins', e);  
+    }  
+    openedAdWins = [];  
+    lastOpenedAdWin = null;  
+
+    try { window.focus(); } catch(e) {}  
     return;  
   } catch (e) {  
     console.error('mainAdFlow error', e);  
   } finally {  
     window.__adRunner.isRunning = false;  
   }  
-})();  
+})();
 </script>
 
 
