@@ -1324,23 +1324,32 @@ firebase.database().ref("users/" + uid + "/withdraw").once("value")
     </script>
 
 <script>
-    // جلب الرصيد اليومي من فايرباس
-    firebase.auth().onAuthStateChanged(user => {
-        if (!user) return;
-        const uid = user.uid;
+  // عرض أرباح اليوم في العنصر
+  function showDailyBalance() {
+    const el = document.getElementById("daybalance");
+    if (!el) return;
 
-        firebase.database()
-        .ref(`users/${uid}/daybalance`) // غيّر المسار حسب قاعدة بياناتك
-        .once('value')
-        .then(snapshot => {
-            const dayBalance = snapshot.val();
-            document.getElementById("daybalance").textContent = (dayBalance ?? 0).toFixed(2);
-        })
-        .catch(err => {
-            console.error("خطأ في جلب الرصيد اليومي:", err);
-            document.getElementById("daybalance").textContent = "0.00";
-        });
-    });
+    let earningsData = JSON.parse(localStorage.getItem("earningsTodayData"));
+
+    if (!earningsData) {
+      el.textContent = "0.00";
+      return;
+    }
+
+    const now = Date.now();
+    const elapsed = now - earningsData.startTime;
+
+    // إذا مرت 24 ساعة → إعادة التصفير
+    if (elapsed > 24 * 60 * 60 * 1000) {
+      earningsData = { amount: 0, startTime: now };
+      localStorage.setItem("earningsTodayData", JSON.stringify(earningsData));
+    }
+
+    el.textContent = parseFloat(earningsData.amount).toFixed(2);
+  }
+
+  // استدعها عند تحميل الصفحة
+  document.addEventListener("DOMContentLoaded", showDailyBalance);
 </script>
 
                         <script>
