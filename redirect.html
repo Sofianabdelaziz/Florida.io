@@ -149,7 +149,8 @@ function randomMs(minSec, maxSec) {
   // يعيد الزمن بالملّي ثانية  
   return randomInt(minSec, maxSec) * 1000;  
 }  
-</script>  <script>  
+</script>  
+<script>  
 // ===== وحدة إدارة وقت الانتظار في localStorage (موحد المفتاح) =====  
 const WAIT_KEY = 'waitEndTime';  
   
@@ -173,7 +174,9 @@ function getRemainingWait() {
 function clearWaitEndTime() {  
   localStorage.removeItem(WAIT_KEY);  
 }  
-</script>  <!-- 02 - تعريف الشركات والروابط -->  <script>  
+</script>  
+<!-- 02 - تعريف الشركات والروابط --> 
+<script>  
 // هذا كود: تعريف قائمة الشركات والروابط (مصدر الإعلانات)  
 const companies = {  
   adstera:    ["https://www.adstera.com"],  
@@ -187,7 +190,9 @@ const companies = {
   adcash:     ["https://www.adcash.com"],  
   admaven:    ["https://www.admaven.com"]  
 };  
-</script>  <!-- 03 - الإعدادات والمتغيرات العامة -->  <script>  
+</script>  
+<!-- 03 - الإعدادات والمتغيرات العامة -->  
+<script>  
 // هذا كود: متغيرات الحالة العامة وإعداداتها  
 let lastFive = [];  
 let batchCount = 0;                       // متغير حالة عام  
@@ -201,7 +206,9 @@ let openedAdWins = [];
   
 // متغير لمتابعة آخر نافذة إعلان مفتوحة (يستخدمه openAd/waitInsideAd)  
 let lastOpenedAdWin = null;  
-</script>  <!-- 04 - فترات الراحة والحظر (الزمنيات) -->  <script>  
+</script> 
+<!-- 04 - فترات الراحة والحظر (الزمنيات) --> 
+<script>  
 // هذا كود: دوال تعيد فترات الراحة القصيرة والحظر الطويل  
 function getRestPeriod() {  
   // راحة قصيرة: 2-3 دقائق  
@@ -213,7 +220,9 @@ function getBanPeriod() {
   const min = Math.floor(1 * 60), max = Math.floor(2 * 60);  
   return randomInt(min, max) * 60 * 1000;  
 }  
-</script>  <!-- 05 - سجل الإعلانات ومنع التكرار -->  <script>  
+</script>  
+<!-- 05 - سجل الإعلانات ومنع التكرار --> 
+<script>  
 // هذا كود: تسجيل الإعلانات الحديثة ومنع إعادة عرض نفس الشركة خلال نافذة زمنية  
 function canShowAd(company) {  
   const now = Date.now();  
@@ -231,7 +240,9 @@ function registerAd(company) {
 <script>  
 /* منع تشغيل متكرر */  
 window.__adRunner = window.__adRunner || { isRunning: false };  
-</script>  <!-- 06 - اختيار شركة/رابط عشوائي -->  <script>  
+</script> 
+<!-- 06 - اختيار شركة/رابط عشوائي -->
+<script>  
 // هذا كود: اختيار شركة بشكل عشوائي مع تجنب آخر 5 شركات  
 function getRandomCompany() {  
   let keys = Object.keys(companies).filter(c => !lastFive.includes(c));  
@@ -392,7 +403,7 @@ try { window.focus(); } catch(e) {}
 async function mainAdFlowWrapper() {  
   return runBatchProtected();  
 }  
-                  </script>  
+ </script>  
 <!-- 09 - العد التنازلي وlocalStorage -->   
 <script>  
   
